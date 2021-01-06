@@ -1,0 +1,8 @@
+.theia/
+.vscode/
+.idea/
+CameraWebServe*/
+testNeopixel/
+capture.jpg
+Settings.png
+Workspace.theia-workspace
