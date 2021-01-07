@@ -1,7 +1,7 @@
 #include <Wire.h>
  
 int x = 0;
-char* s = "";
+char* s = "asdf";
 
 void setup() {
   Wire.begin(14, 15, 8000000);
@@ -16,7 +16,7 @@ void i2c_write_register(int DEVICE_I2C_ADDRESS, int DEVICE_REGISTER, char* toWri
     Serial.println("Before write1");
     Wire.write(DEVICE_REGISTER); // select starting register with "write()"
     Serial.println("Before write2");
-    Wire.write("String");
+    Wire.write(toWrite);
     Serial.println("Before end");
     Wire.endTransmission(); // end write operation, as we just wanted to select the starting register
 }

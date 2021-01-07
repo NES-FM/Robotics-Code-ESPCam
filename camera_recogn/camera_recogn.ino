@@ -14,6 +14,13 @@ Adafruit_NeoPixel pixels = Adafruit_NeoPixel(4, 13, NEO_GRB + NEO_KHZ800);
 #define CAMERA_MODEL_AI_THINKER
 #include "camera_pins.h"
 
+TaskHandle_t WireCore0Task;
+char* wire_line_output = "||+00";
+char* old_wire_line_output = "||+00";
+char* wire_green_output = "tl:f|tr:f|dl:f|dr:f";
+char* old_wire_green_output = "tl:f|tr:f|dl:f|dr:f";
+#include "wire_adresses.h"
+
 /*
 // const char* ssid = "ESP32-AAAAA";
 const char* ssid = "AMHOME";
@@ -41,7 +48,7 @@ uint8_t * temp_buffer = (uint8_t *)calloc(WIDTH * HEIGHT * 3,sizeof(uint8_t));
 size_t temp_buffer_len = 0;
 
 
-void i2c_write_register(int DEVICE_I2C_ADDRESS, int DEVICE_REGISTER, String toWrite)
+void i2c_write_register(int DEVICE_I2C_ADDRESS, int DEVICE_REGISTER, char* toWrite)
 {
     Wire.beginTransmission(DEVICE_I2C_ADDRESS); // select device with "beginTransmission()"
     Wire.write(DEVICE_REGISTER); // select starting register with "write()"
@@ -136,6 +143,14 @@ void setup() {
   Serial.print(WiFi.localIP());
   Serial.println("' to connect");
 */
+    xTaskCreatePinnedToCore(
+      WireCore0TaskCode, /* Function to implement the task */
+      "WireCore0Task", /* Name of the task */
+      10000,  /* Stack size in words */
+      NULL,  /* Task input parameter */
+      0,  /* Priority of the task */
+      &WireCore0Task,  /* Task handle. */
+      0); /* Core where the task should run */
 }
 
 
@@ -521,9 +536,9 @@ void downsize(uint8_t *buf, size_t len) {
     //Serial.println();
 }
 
-void rad_to_deg(int rad)
+float rad_to_deg(float rad)
 {
-    return ((rad * 4068) / 71)
+    return ((rad * 4068) / 71);
 }
 
 String line_recogn(uint8_t frame[H][W][3]) {
@@ -602,7 +617,7 @@ String line_recogn(uint8_t frame[H][W][3]) {
         d_x = end_point[1] - start_point[1];
         d_y = end_point[0] - start_point[0];
 
-        angle = constrain(round(rad_to_deg(atan2(d_y, d_x)) - 90), -90, 90);
+        angle = constrain(round(rad_to_deg(atan2(d_y, d_x))) - 90, -90, 90);
 
         if (angle != -90 && angle != 90)
             //sprintf(line, "|%02d", angle);
@@ -654,6 +669,7 @@ unsigned long mil_5 = 0;
 unsigned long mil_6 = 0;
 
 void loop() {
+    Serial.print("Loop started on core "); Serial.println(xPortGetCoreID());
     /*
     if(digitalRead(12) == LOW)
     {
@@ -701,4 +717,24 @@ void loop() {
     //Serial.printf("\nTotal: %3d, s-1: %3d, 1-2: %3d, 2-3: %3d, 3-4: %3d\n\n", mil_4 - mil_s, mil_1 - mil_s, mil_2 - mil_1, mil_3 - mil_2, mil_4 - mil_3);
 
     delay(1000);
+}
+
+
+void WireCore0TaskCode()
+{
+    Serial.print("WireCore0TaskCode started on core "); Serial.println(xPortGetCoreID());
+    while(true)
+    {
+        if (old_wire_line_output != wire_line_output)
+        {
+            old_wire_line_output = wire_line_output;
+            i2c_write_register(addr_addr, addr_cam_line, wire_line_output);
+        }
+        /*
+        if (old_wire_green_output != wire_green_output)
+        {
+            old_wire_green_output = wire_green_output;
+        }
+        */
+    }
 }
