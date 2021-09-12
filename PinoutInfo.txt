@@ -1,0 +1,14 @@
+Pin | OnBoard     |    Bemerkungen              |     V1          |   V2
+
+4:	MicroSD DATA1 ~                             ~                 ~ cRX-Cuart
+2:	MicroSD DATA0 ~                             ~                 ~ 
+14:	MicroSD Clock ~                             ~ cRX-Cuart       ~ 
+15:	MicroSD CMD   ~                             ~ cTX-Cuart       ~ 
+13: MicroSD DATA3 ~                             ~ Neo Shift       ~ Wettkampfmodus
+12: MicroSD DATA2 ~ (Boot Fail if pulled HIGH)  ~ Wettkampfmodus  ~ 
+
+0:  Programming   ~ (10k PullUP)                ~                 ~ cTX-Cuart
+16:               ~                             ~                 ~ Neo Shift
+
+33: LED_BUILTIN   ~                             ~                 ~ 
+
