@@ -45,14 +45,16 @@ void cuart_code(void* parameter)
 		    Serial1.write(cuart_line_type);
 		    Serial1.write(cuart_line_angle);
 		    Serial1.write(cuart_line_midfactor);
-		    Serial1.write("\n");
+		    Serial1.write(0x00);
+			Serial1.write(0xFF);
 		}
 		if (cuart_green_changed)
 		{
 			cuart_green_changed = false;
 		    Serial1.write("G");
 		    Serial1.write(cuart_green);
-		    Serial1.write("\n");			
+		    Serial1.write(0x00);
+			Serial1.write(0xFF);		
 		}
     }
 }
