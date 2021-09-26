@@ -852,7 +852,7 @@ bool line_recogn(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3]) {
     }
 
     // ... And by doing so getting the ltype
-    if (top_left_equal && top_right_equal && bottom_left_equal && bottom_right_equal) {
+    if ((top_left_equal && top_right_equal && bottom_left_equal && bottom_right_equal)||(!top_left_equal && top_right_equal && bottom_left_equal && !bottom_right_equal)||(top_left_equal && !top_right_equal && !bottom_left_equal && bottom_right_equal)) {
         ltype = cuart_ltype_straight;
     }
     else if (top_left_equal && top_right_equal && !bottom_left_equal && bottom_right_equal) {
