@@ -83,6 +83,12 @@ void saveBrimap();
 
 void setup() {  
 
+    pinMode(33, OUTPUT);
+    digitalWrite(33, LOW);
+    delay(500);
+    digitalWrite(33, HIGH);
+
+
   Serial.begin(115200);
   Serial.setDebugOutput(true);
   Serial.println();
