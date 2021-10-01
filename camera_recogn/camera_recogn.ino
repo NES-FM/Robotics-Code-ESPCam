@@ -14,12 +14,12 @@ Adafruit_NeoPixel pixels = Adafruit_NeoPixel(4, 16, NEO_GRB + NEO_KHZ800);
 #define CAMERA_MODEL_AI_THINKER
 #include "camera_pins.h"
 
-#include "FS.h"                // SD Card ESP32
-#include "SD_MMC.h"            // SD Card ESP32
-#include "soc/soc.h"           // Disable brownour problems
-#include "soc/rtc_cntl_reg.h"  // Disable brownour problems
+#include "FS.h"               // SD Card ESP32
+#include "SD_MMC.h"           // SD Card ESP32
+#include "soc/soc.h"          // Disable brownour problems
+#include "soc/rtc_cntl_reg.h" // Disable brownour problems
 #include "driver/rtc_io.h"
-#include <EEPROM.h>            // read and write from flash memory
+#include <EEPROM.h> // read and write from flash memory
 
 // define the number of bytes you want to access
 #define EEPROM_SIZE 3000
@@ -53,23 +53,22 @@ int last_debug_millis = 0;
 // RECOGN_MAX_OFFSET = maximum difference between to measurements to be considered the same
 #define RECOGN_MAX_OFFSET 2
 
-// PER_BLOCK is Calculated from the Values above. 
+// PER_BLOCK is Calculated from the Values above.
 #define PER_BLOCK (IMAGE_HEIGHT / END_RESOLUTION)
 
 String line = "";
 
-uint8_t rgb_frame[END_RESOLUTION][END_RESOLUTION][3] = { 0 };
+uint8_t rgb_frame[END_RESOLUTION][END_RESOLUTION][3] = {0};
 //uint8_t rgb_frame[HEIGHT][WIDTH][3] = {0};
 
-uint8_t * temp_buffer = (uint8_t *)calloc(IMAGE_WIDTH * IMAGE_HEIGHT * 3,sizeof(uint8_t));
+uint8_t *temp_buffer = (uint8_t *)calloc(IMAGE_WIDTH * IMAGE_HEIGHT * 3, sizeof(uint8_t));
 size_t temp_buffer_len = IMAGE_WIDTH * IMAGE_HEIGHT * 3;
 
-uint8_t * small_buffer = (uint8_t *)calloc(END_RESOLUTION * END_RESOLUTION * 3,sizeof(uint8_t));
+uint8_t *small_buffer = (uint8_t *)calloc(END_RESOLUTION * END_RESOLUTION * 3, sizeof(uint8_t));
 size_t small_buffer_len = END_RESOLUTION * END_RESOLUTION * 3;
 
-uint8_t * small_jpg_buffer = (uint8_t *)calloc(END_RESOLUTION * END_RESOLUTION * 3,sizeof(uint8_t));
+uint8_t *small_jpg_buffer = (uint8_t *)calloc(END_RESOLUTION * END_RESOLUTION * 3, sizeof(uint8_t));
 size_t small_jpg_buffer_len = 0;
-
 
 uint8_t brimap[END_RESOLUTION][END_RESOLUTION][3];
 
@@ -81,28 +80,28 @@ void saveBrimap();
 #define EEPROM_BRIMAP_SIZE 1
 #define EEPROM_BRIMAP_DATA 2
 
-void setup() {  
+void setup()
+{
 
     pinMode(33, OUTPUT);
     digitalWrite(33, LOW);
     delay(500);
     digitalWrite(33, HIGH);
 
+    Serial.begin(115200);
+    Serial.setDebugOutput(true);
+    Serial.println();
 
-  Serial.begin(115200);
-  Serial.setDebugOutput(true);
-  Serial.println();
+    pinMode(12, INPUT_PULLUP);
 
-  pinMode(12, INPUT_PULLUP);
+    pixels.begin();
+    pixels.show();
 
-  pixels.begin();
-  pixels.show();
-
-  pixels.fill(pixels.Color(156, 156, 156));
-  pixels.show();
+    pixels.fill(pixels.Color(156, 156, 156));
+    pixels.show();
 
     Serial.println("1");
-/*
+    /*
   camera_config_t config;
   config.ledc_channel = LEDC_CHANNEL_0;
   config.ledc_timer = LEDC_TIMER_0;
@@ -167,25 +166,26 @@ void setup() {
 
     Serial.println("2");
 
-  // camera init
-  esp_err_t err = esp_camera_init(&config);
-  if (err != ESP_OK) {
-    Serial.printf("Camera init failed with error 0x%x", err);
-    return;
-  }
+    // camera init
+    esp_err_t err = esp_camera_init(&config);
+    if (err != ESP_OK)
+    {
+        Serial.printf("Camera init failed with error 0x%x", err);
+        return;
+    }
 
     Serial.println("3");
 
-  sensor_t * s = esp_camera_sensor_get();
-  
-  //drop down frame size for higher initial frame rate
-//   s->set_framesize(s, IMAGE_RESOLUTION);
-  s->set_contrast(s, 2);
-  s->set_lenc(s, false);
-  s->set_vflip(s, 1);
-  s->set_hmirror(s, 1);
+    sensor_t *s = esp_camera_sensor_get();
 
-/*
+    //drop down frame size for higher initial frame rate
+    //   s->set_framesize(s, IMAGE_RESOLUTION);
+    s->set_contrast(s, 2);
+    s->set_lenc(s, false);
+    s->set_vflip(s, 1);
+    s->set_hmirror(s, 1);
+
+    /*
   WiFi.begin(ssid, password);
 
   while (WiFi.status() != WL_CONNECTED) {
@@ -200,17 +200,19 @@ void setup() {
   Serial.println("' to connect");
 */
     Serial.println("4");
-    
+
     cuart_init();
 
     loadBrimap();
 
-    Serial.print("Main started on core "); Serial.println(xPortGetCoreID());
+    Serial.print("Main started on core ");
+    Serial.println(xPortGetCoreID());
 }
 
-
-const int distinctRGB[6][3]    = {{5, 5, 5}, {200, 200, 200}, {90, 130, 90}};
-const String distinctColors[6] = {"black"   "white"        , "green"     };
+const int distinctRGB[6][3] = {{5, 5, 5}, {200, 200, 200}, {90, 130, 90}};
+const String distinctColors[6] = {"black"
+                                  "white",
+                                  "green"};
 /*
 String closestColor(int r,int g,int b) {
   String colorReturn = "NA";
@@ -230,12 +232,13 @@ String closestColor(int r,int g,int b) {
 #define g_b_g 20
 #define g_b_b -1
 ///*
-String closestColor(int r,int g,int b) {
+String closestColor(int r, int g, int b)
+{
     if (r > 220 && g > 220 && b > 220)
     {
         return "white";
     }
-    else if ( ((r + b) / 2) < (g - 20))
+    else if (((r + b) / 2) < (g - 20))
     {
         return "green";
     }
@@ -540,7 +543,6 @@ int brimap[12][12] = {
 
 //int brimap[12][12] = { 0 };
 
-
 /*
 //downsize throwing away pixels + 1:1
 #define mvr 3
@@ -628,22 +630,27 @@ void downsize(uint8_t *buf, size_t len) {
 
 ///*
 // Downsize using blocks, which are averaged individually. + 1:1
-void downsize(uint8_t *buf, size_t len) {
+void downsize(uint8_t *buf, size_t len)
+{
     // Looping through each block: Getting the top Left coordinate
-    for (uint8_t block_in_image_y = 0; block_in_image_y < IMAGE_HEIGHT; block_in_image_y += PER_BLOCK) {
-        for (uint8_t block_in_image_x = OFFSET_RIGHT; block_in_image_x < (IMAGE_HEIGHT + OFFSET_RIGHT); block_in_image_x += PER_BLOCK) {
+    for (uint8_t block_in_image_y = 0; block_in_image_y < IMAGE_HEIGHT; block_in_image_y += PER_BLOCK)
+    {
+        for (uint8_t block_in_image_x = OFFSET_RIGHT; block_in_image_x < (IMAGE_HEIGHT + OFFSET_RIGHT); block_in_image_x += PER_BLOCK)
+        {
             int block_r = 0;
             int block_g = 0;
             int block_b = 0;
 
             // Loobing through each pixel in the block: The Offset from the top left corner
-            for (uint8_t offset_in_block_y = 0; offset_in_block_y < PER_BLOCK; offset_in_block_y++) {
-                for (uint8_t offset_in_block_x = 0; offset_in_block_x < PER_BLOCK; offset_in_block_x++) {
+            for (uint8_t offset_in_block_y = 0; offset_in_block_y < PER_BLOCK; offset_in_block_y++)
+            {
+                for (uint8_t offset_in_block_x = 0; offset_in_block_x < PER_BLOCK; offset_in_block_x++)
+                {
                     // Calculating the Index into the buffer
                     size_t index = 3 * ((block_in_image_x + offset_in_block_x) + ((block_in_image_y + offset_in_block_y) * IMAGE_WIDTH));
-                    block_b += buf[index+0];
-                    block_g += buf[index+1];
-                    block_r += buf[index+2];
+                    block_b += buf[index + 0];
+                    block_g += buf[index + 1];
+                    block_r += buf[index + 2];
                 }
             }
 
@@ -659,14 +666,14 @@ void downsize(uint8_t *buf, size_t len) {
             // Variables for storing the color
             uint8_t rn;
             uint8_t gn;
-            uint8_t bn;   
+            uint8_t bn;
 
             if (!debug_no_brimap)
-            {     
+            {
                 // If the Brightmap is enabled (default)
-                rn = map(constrain(brimap[block_y][block_x][0] - block_r, 0, 255), 0, 255, 255, 0);  //brimap has calibration data, r contains value, map inverts the color
-                gn = map(constrain(brimap[block_y][block_x][1] - block_g, 0, 255), 0, 255, 255, 0);  //brimap has calibration data, g contains value, map inverts the color
-                bn = map(constrain(brimap[block_y][block_x][2] - block_b, 0, 255), 0, 255, 255, 0);  //brimap has calibration data, b contains value, map inverts the color
+                rn = map(constrain(brimap[block_y][block_x][0] - block_r, 0, 255), 0, 255, 255, 0); //brimap has calibration data, r contains value, map inverts the color
+                gn = map(constrain(brimap[block_y][block_x][1] - block_g, 0, 255), 0, 255, 255, 0); //brimap has calibration data, g contains value, map inverts the color
+                bn = map(constrain(brimap[block_y][block_x][2] - block_b, 0, 255), 0, 255, 255, 0); //brimap has calibration data, b contains value, map inverts the color
             }
             else
             {
@@ -676,34 +683,41 @@ void downsize(uint8_t *buf, size_t len) {
                 bn = block_b;
             }
 
-            if (debug_no_closest_color) 
+            if (debug_no_closest_color)
             {
                 // If the closest color routine is disabled
                 rgb_frame[block_y][block_x][0] = rn;
                 rgb_frame[block_y][block_x][1] = gn;
                 rgb_frame[block_y][block_x][2] = bn;
-            } 
-            else 
+            }
+            else
             {
                 // If the closest color routine is enabled (default)
                 String colorReturn = closestColor(rn, gn, bn);
                 uint8_t color[3];
-                if (colorReturn == "black") {
-                color[0] = 0;
-                color[1] = 0;
-                color[2] = 0;
-                } else if (colorReturn == "white") {
-                color[0] = 255;
-                color[1] = 255;
-                color[2] = 255;
-                } else if (colorReturn == "green") {
-                color[0] = 0;
-                color[1] = 255;
-                color[2] = 0;
-                } else {
-                color[0] = 0;
-                color[1] = 0;
-                color[2] = 0;
+                if (colorReturn == "black")
+                {
+                    color[0] = 0;
+                    color[1] = 0;
+                    color[2] = 0;
+                }
+                else if (colorReturn == "white")
+                {
+                    color[0] = 255;
+                    color[1] = 255;
+                    color[2] = 255;
+                }
+                else if (colorReturn == "green")
+                {
+                    color[0] = 0;
+                    color[1] = 255;
+                    color[2] = 0;
+                }
+                else
+                {
+                    color[0] = 0;
+                    color[1] = 0;
+                    color[2] = 0;
                 }
                 rgb_frame[block_y][block_x][0] = color[0];
                 rgb_frame[block_y][block_x][1] = color[1];
@@ -722,36 +736,37 @@ float rad_to_deg(float rad)
     return ((rad * 4068) / 71);
 }
 
-bool line_recogn(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3]) {
-    int measured_left_top[2] = {0, 0};  // red
-    int measured_left_bottom[2] = {0, 0};  // red
+bool line_recogn(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3])
+{
+    int measured_left_top[2] = {0, 0};    // red
+    int measured_left_bottom[2] = {0, 0}; // red
     bool left_top_found = false;
 
-    int measured_right_top[2] = {0, 0};  // blue
-    int measured_right_bottom[2] = {0, 0};  // blue
+    int measured_right_top[2] = {0, 0};    // blue
+    int measured_right_bottom[2] = {0, 0}; // blue
     bool right_top_found = false;
 
     int measured_top_left[2] = {0, 0};  // green
-    int measured_top_right[2] = {0, 0};  // green
+    int measured_top_right[2] = {0, 0}; // green
     bool top_left_found = false;
 
     int measured_bottom_left[2] = {0, 0};  // pink
-    int measured_bottom_right[2] = {0, 0};  // pink
+    int measured_bottom_right[2] = {0, 0}; // pink
     bool bottom_left_found = false;
 
     bool flag_wait = false;
 
-    bool top_left_equal = false;  // red + green
-    bool top_right_equal = false;  // blue + green
+    bool top_left_equal = false;     // red + green
+    bool top_right_equal = false;    // blue + green
     bool bottom_left_equal = false;  // red + pink
-    bool bottom_right_equal = false;  // blue + pink
+    bool bottom_right_equal = false; // blue + pink
 
     int ltype = 0;
     int angle = 0;
     int midfactor = 0;
 
     int delta[2] = {0, 0};
-    
+
     int left_angle = 0;
     int right_angle = 0;
     int top_angle = 0;
@@ -761,15 +776,20 @@ bool line_recogn(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3]) {
     int bottom_midfactor = 0;
 
     // iterating from Top to Bottom
-    for (int y = 0; y < END_RESOLUTION; y++) {
+    for (int y = 0; y < END_RESOLUTION; y++)
+    {
         // iterating from left to right
-        for (int x = 0; x < END_RESOLUTION; x++) {
-            if (frame[y][x][0] == 0 && frame[y][x][1] == 0 && frame[y][x][2] == 0) {
-                if (left_top_found) {
+        for (int x = 0; x < END_RESOLUTION; x++)
+        {
+            if (frame[y][x][0] == 0 && frame[y][x][1] == 0 && frame[y][x][2] == 0)
+            {
+                if (left_top_found)
+                {
                     measured_left_bottom[0] = x;
                     measured_left_bottom[1] = y;
                 }
-                else {
+                else
+                {
                     measured_left_top[0] = x;
                     measured_left_top[1] = y;
                     left_top_found = true;
@@ -778,13 +798,17 @@ bool line_recogn(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3]) {
             }
         }
         // iterating from right to left
-        for (int x = END_RESOLUTION-1; x >= 0; x--) {
-            if (frame[y][x][0] == 0 && frame[y][x][1] == 0 && frame[y][x][2] == 0) {
-                if (right_top_found) {
+        for (int x = END_RESOLUTION - 1; x >= 0; x--)
+        {
+            if (frame[y][x][0] == 0 && frame[y][x][1] == 0 && frame[y][x][2] == 0)
+            {
+                if (right_top_found)
+                {
                     measured_right_bottom[0] = x;
                     measured_right_bottom[1] = y;
                 }
-                else {
+                else
+                {
                     measured_right_top[0] = x;
                     measured_right_top[1] = y;
                     right_top_found = true;
@@ -795,15 +819,20 @@ bool line_recogn(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3]) {
     }
 
     // iterating from Left to Right
-    for (int x = 0; x < END_RESOLUTION; x++) {
+    for (int x = 0; x < END_RESOLUTION; x++)
+    {
         // iterating from Top to Bottom
-        for (int y = 0; y < END_RESOLUTION; y++) {
-            if (frame[y][x][0] == 0 && frame[y][x][1] == 0 && frame[y][x][2] == 0) {
-                if (top_left_found) {
+        for (int y = 0; y < END_RESOLUTION; y++)
+        {
+            if (frame[y][x][0] == 0 && frame[y][x][1] == 0 && frame[y][x][2] == 0)
+            {
+                if (top_left_found)
+                {
                     measured_top_right[0] = x;
                     measured_top_right[1] = y;
                 }
-                else {
+                else
+                {
                     measured_top_left[0] = x;
                     measured_top_left[1] = y;
                     top_left_found = true;
@@ -812,13 +841,17 @@ bool line_recogn(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3]) {
             }
         }
         // iterating from right to left
-        for (int y = END_RESOLUTION-1; y >= 0; y--) {
-            if (frame[y][x][0] == 0 && frame[y][x][1] == 0 && frame[y][x][2] == 0) {
-                if (bottom_left_found) {
+        for (int y = END_RESOLUTION - 1; y >= 0; y--)
+        {
+            if (frame[y][x][0] == 0 && frame[y][x][1] == 0 && frame[y][x][2] == 0)
+            {
+                if (bottom_left_found)
+                {
                     measured_bottom_right[0] = x;
                     measured_bottom_right[1] = y;
                 }
-                else {
+                else
+                {
                     measured_bottom_left[0] = x;
                     measured_bottom_left[1] = y;
                     bottom_left_found = true;
@@ -844,42 +877,54 @@ bool line_recogn(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3]) {
     }
     //*/
 
-    if (abs(measured_left_top[0] - measured_top_left[0]) <= RECOGN_MAX_OFFSET || abs(measured_left_top[1] - measured_top_left[1]) <= RECOGN_MAX_OFFSET) {
+    if (abs(measured_left_top[0] - measured_top_left[0]) <= RECOGN_MAX_OFFSET || abs(measured_left_top[1] - measured_top_left[1]) <= RECOGN_MAX_OFFSET)
+    {
         top_left_equal = true;
     }
-    if (abs(measured_right_top[0] - measured_top_right[0]) <= RECOGN_MAX_OFFSET || abs(measured_right_top[1] - measured_top_right[1]) <= RECOGN_MAX_OFFSET) {
+    if (abs(measured_right_top[0] - measured_top_right[0]) <= RECOGN_MAX_OFFSET || abs(measured_right_top[1] - measured_top_right[1]) <= RECOGN_MAX_OFFSET)
+    {
         top_right_equal = true;
     }
-    if (abs(measured_left_bottom[0] - measured_bottom_left[0]) <= RECOGN_MAX_OFFSET || abs(measured_left_bottom[1] - measured_bottom_left[1]) <= RECOGN_MAX_OFFSET) {
+    if (abs(measured_left_bottom[0] - measured_bottom_left[0]) <= RECOGN_MAX_OFFSET || abs(measured_left_bottom[1] - measured_bottom_left[1]) <= RECOGN_MAX_OFFSET)
+    {
         bottom_left_equal = true;
     }
-    if (abs(measured_right_bottom[0] - measured_bottom_right[0]) <= RECOGN_MAX_OFFSET || abs(measured_right_bottom[1] - measured_bottom_right[1]) <= RECOGN_MAX_OFFSET) {
+    if (abs(measured_right_bottom[0] - measured_bottom_right[0]) <= RECOGN_MAX_OFFSET || abs(measured_right_bottom[1] - measured_bottom_right[1]) <= RECOGN_MAX_OFFSET)
+    {
         bottom_right_equal = true;
     }
 
     // ... And by doing so getting the ltype
-    if ((top_left_equal && top_right_equal && bottom_left_equal && bottom_right_equal)||(!top_left_equal && top_right_equal && bottom_left_equal && !bottom_right_equal)||(top_left_equal && !top_right_equal && !bottom_left_equal && bottom_right_equal)) {
+    if ((top_left_equal && top_right_equal && bottom_left_equal && bottom_right_equal) || (!top_left_equal && top_right_equal && bottom_left_equal && !bottom_right_equal) || (top_left_equal && !top_right_equal && !bottom_left_equal && bottom_right_equal))
+    {
         ltype = cuart_ltype_straight;
     }
-    else if (top_left_equal && top_right_equal && !bottom_left_equal && bottom_right_equal) {
+    else if (top_left_equal && top_right_equal && !bottom_left_equal && bottom_right_equal)
+    {
         ltype = cuart_ltype_90l;
     }
-    else if (top_left_equal && top_right_equal && bottom_left_equal && !bottom_right_equal) {
+    else if (top_left_equal && top_right_equal && bottom_left_equal && !bottom_right_equal)
+    {
         ltype = cuart_ltype_90r;
     }
-    else if (!top_left_equal && top_right_equal && !bottom_left_equal && bottom_right_equal) {
+    else if (!top_left_equal && top_right_equal && !bottom_left_equal && bottom_right_equal)
+    {
         ltype = cuart_ltype_tl;
     }
-    else if (top_left_equal && !top_right_equal && bottom_left_equal && !bottom_right_equal) {
+    else if (top_left_equal && !top_right_equal && bottom_left_equal && !bottom_right_equal)
+    {
         ltype = cuart_ltype_tr;
     }
-    else if (top_left_equal && top_right_equal && !bottom_left_equal && !bottom_right_equal) {
+    else if (top_left_equal && top_right_equal && !bottom_left_equal && !bottom_right_equal)
+    {
         ltype = cuart_ltype_t;
     }
-    else if (!top_left_equal && !top_right_equal && !bottom_left_equal && !bottom_right_equal) {
+    else if (!top_left_equal && !top_right_equal && !bottom_left_equal && !bottom_right_equal)
+    {
         ltype = cuart_ltype_X;
     }
-    else {
+    else
+    {
         ltype = cuart_ltype_unknown;
     }
 
@@ -901,52 +946,101 @@ bool line_recogn(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3]) {
     bottom_angle = constrain(round(rad_to_deg(atan2(delta[1], delta[0]))) - 90, -90, 90);
 
     // Calculating the Angle based on the ltype
-    if (ltype == cuart_ltype_straight || ltype == cuart_ltype_tl || ltype == cuart_ltype_tr || ltype == cuart_ltype_X) { // average between left and right angles
+    if (ltype == cuart_ltype_straight || ltype == cuart_ltype_tl || ltype == cuart_ltype_tr || ltype == cuart_ltype_X)
+    { // average between left and right angles
         angle = (left_angle + right_angle) / 2;
     }
-    else if (ltype == cuart_ltype_90l) { // right angle
+    else if (ltype == cuart_ltype_90l)
+    { // right angle
         angle = right_angle;
     }
-    else if (ltype == cuart_ltype_90r) { // left angle
+    else if (ltype == cuart_ltype_90r)
+    { // left angle
         angle = left_angle;
     }
-    else if (ltype == cuart_ltype_t) { // average between top and bottom
+    else if (ltype == cuart_ltype_t)
+    { // average between top and bottom
         angle = (top_angle + bottom_angle) / 2;
     }
 
-
     // The deviation from the center value | too left means negative
     //                     (mid of line                                       ) - (mid of image          )
-    top_midfactor = int(int((measured_left_top[0] + measured_right_top[0]) / 2) - ((END_RESOLUTION-1) / 2));
-    bottom_midfactor = int(int((measured_left_bottom[0] + measured_right_bottom[0]) / 2) - ((END_RESOLUTION-1) / 2));
+    top_midfactor = int(int((measured_left_top[0] + measured_right_top[0]) / 2) - ((END_RESOLUTION - 1) / 2));
+    bottom_midfactor = int(int((measured_left_bottom[0] + measured_right_bottom[0]) / 2) - ((END_RESOLUTION - 1) / 2));
 
     // Calculating the midfactor based on the ltype
-    if (ltype == cuart_ltype_straight || ltype == cuart_ltype_tl || ltype == cuart_ltype_tr || ltype == cuart_ltype_X || ltype == cuart_ltype_unknown) { // average between top and bottom
+    if (ltype == cuart_ltype_straight || ltype == cuart_ltype_tl || ltype == cuart_ltype_tr || ltype == cuart_ltype_X || ltype == cuart_ltype_unknown)
+    { // average between top and bottom
         midfactor = (bottom_midfactor + top_midfactor) / 2;
     }
-    else if (ltype == cuart_ltype_90l || ltype == cuart_ltype_90r || ltype == cuart_ltype_t) { //bottom midfactor
+    else if (ltype == cuart_ltype_90l || ltype == cuart_ltype_90r || ltype == cuart_ltype_t)
+    { //bottom midfactor
         midfactor = bottom_midfactor;
     }
 
     // getting distance from the top: if not enough distance, wait, because t and 90 could not be differentiated.
     // Exception: ltype_straight, because then it is a incoming space
-    if (measured_top_left[1] < RECOGN_WAIT_THRESHOLD && measured_top_right[1] < RECOGN_WAIT_THRESHOLD) {
-        if (ltype = cuart_ltype_straight) {
+    if (measured_top_left[1] < RECOGN_WAIT_THRESHOLD && measured_top_right[1] < RECOGN_WAIT_THRESHOLD)
+    {
+        if (ltype = cuart_ltype_straight)
+        {
             ltype = cuart_ltype_space;
         }
-        else {
+        else
+        {
             ltype = cuart_ltype_straight;
         }
     }
 
     if (debug)
     {
-        Serial.print("Ltype: "); Serial.print(ltype); Serial.print("  Angle: "); Serial.print(angle); Serial.print("  Midfactor: "); Serial.print(midfactor); Serial.println("");
-        Serial.print("TL equal: "); Serial.print(top_left_equal); Serial.print(" TR equal: "); Serial.print(top_right_equal); Serial.print(" BL equal: "); Serial.print(bottom_left_equal); Serial.print(" BR equal: "); Serial.println(bottom_left_equal);
-        Serial.print("(Red)Measured Left Top: "); Serial.print(measured_left_top[0]); Serial.print("|"); Serial.print(measured_left_top[1]); Serial.print(" Measured Left Bottom: "); Serial.print(measured_left_bottom[0]); Serial.print("|"); Serial.println(measured_left_bottom[1]);
-        Serial.print("(Blue)Measured Right Top: "); Serial.print(measured_right_top[0]); Serial.print("|"); Serial.print(measured_right_top[1]); Serial.print(" Measured Right Bottom: "); Serial.print(measured_right_bottom[0]); Serial.print("|"); Serial.println(measured_right_bottom[1]);
-        Serial.print("(Green)Measured Top Left: "); Serial.print(measured_top_left[0]); Serial.print("|"); Serial.print(measured_top_left[1]); Serial.print(" Measured Top Right: "); Serial.print(measured_top_right[0]); Serial.print("|"); Serial.println(measured_top_right[1]);
-        Serial.print("(Pink)Measured Bottom Left: "); Serial.print(measured_bottom_left[0]); Serial.print("|"); Serial.print(measured_bottom_left[1]); Serial.print(" Measured Bottom Right: "); Serial.print(measured_bottom_right[0]); Serial.print("|"); Serial.println(measured_bottom_right[1]);
+        Serial.print("Ltype: ");
+        Serial.print(ltype);
+        Serial.print("  Angle: ");
+        Serial.print(angle);
+        Serial.print("  Midfactor: ");
+        Serial.print(midfactor);
+        Serial.println("");
+        Serial.print("TL equal: ");
+        Serial.print(top_left_equal);
+        Serial.print(" TR equal: ");
+        Serial.print(top_right_equal);
+        Serial.print(" BL equal: ");
+        Serial.print(bottom_left_equal);
+        Serial.print(" BR equal: ");
+        Serial.println(bottom_left_equal);
+        Serial.print("(Red)Measured Left Top: ");
+        Serial.print(measured_left_top[0]);
+        Serial.print("|");
+        Serial.print(measured_left_top[1]);
+        Serial.print(" Measured Left Bottom: ");
+        Serial.print(measured_left_bottom[0]);
+        Serial.print("|");
+        Serial.println(measured_left_bottom[1]);
+        Serial.print("(Blue)Measured Right Top: ");
+        Serial.print(measured_right_top[0]);
+        Serial.print("|");
+        Serial.print(measured_right_top[1]);
+        Serial.print(" Measured Right Bottom: ");
+        Serial.print(measured_right_bottom[0]);
+        Serial.print("|");
+        Serial.println(measured_right_bottom[1]);
+        Serial.print("(Green)Measured Top Left: ");
+        Serial.print(measured_top_left[0]);
+        Serial.print("|");
+        Serial.print(measured_top_left[1]);
+        Serial.print(" Measured Top Right: ");
+        Serial.print(measured_top_right[0]);
+        Serial.print("|");
+        Serial.println(measured_top_right[1]);
+        Serial.print("(Pink)Measured Bottom Left: ");
+        Serial.print(measured_bottom_left[0]);
+        Serial.print("|");
+        Serial.print(measured_bottom_left[1]);
+        Serial.print(" Measured Bottom Right: ");
+        Serial.print(measured_bottom_right[0]);
+        Serial.print("|");
+        Serial.println(measured_bottom_right[1]);
         Serial.println();
     }
 
@@ -1099,10 +1193,13 @@ bool line_recogn(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3]) {
 }
 //*/
 
-void print_frame(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3]) {
+void print_frame(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3])
+{
     Serial.println("-StartOfFrame-");
-    for (int y = 0; y < END_RESOLUTION; y++) {
-        for (int x = 0; x < END_RESOLUTION; x++) {
+    for (int y = 0; y < END_RESOLUTION; y++)
+    {
+        for (int x = 0; x < END_RESOLUTION; x++)
+        {
             Serial.printf("%#02x %#02x %#02x   ", frame[y][x][0], frame[y][x][1], frame[y][x][2]);
         }
         Serial.println();
@@ -1110,11 +1207,14 @@ void print_frame(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3]) {
     Serial.println("-EndOfFrame-");
 }
 
-void print_whole_frame(uint8_t * frame) {
+void print_whole_frame(uint8_t *frame)
+{
     Serial.println("-StartOfFrame-");
     int z = 0;
-    for (int y = 0; y < IMAGE_HEIGHT; y++) {
-        for (int x = 0; x < IMAGE_WIDTH; x++) {
+    for (int y = 0; y < IMAGE_HEIGHT; y++)
+    {
+        for (int x = 0; x < IMAGE_WIDTH; x++)
+        {
             Serial.printf("%#02x %#02x %#02x   ", frame[z++], frame[z++], frame[z++]);
         }
         Serial.println();
@@ -1122,22 +1222,23 @@ void print_whole_frame(uint8_t * frame) {
     Serial.println("-EndOfFrame-");
 }
 
-
-bool saveImgToSd(const uint8_t * frame, size_t frame_len, String name)
+bool saveImgToSd(const uint8_t *frame, size_t frame_len, String name)
 {
     int pictureNumber = EEPROM.read(EEPROM_IMAGE_COUNT);
     // Path where new picture will be saved in SD Card
-    String path = "/debug/" + String(pictureNumber) + "_" + name + ".jpg";    
+    String path = "/debug/" + String(pictureNumber) + "_" + name + ".jpg";
 
-    fs::FS &fs = SD_MMC; 
+    fs::FS &fs = SD_MMC;
     Serial.printf("Picture file path: %s\n", path.c_str());
 
     File file = fs.open(path.c_str(), FILE_WRITE);
-    if(!file){
+    if (!file)
+    {
         Serial.println("Failed to open file in writing mode");
         return false;
-    } 
-    else {
+    }
+    else
+    {
         file.write(frame, frame_len); // payload (image), payload length
         Serial.printf("Saved file to path: %s\n", path.c_str());
     }
@@ -1151,17 +1252,19 @@ bool saveImgToSdPPM(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3], size_t fra
     int pictureNumber = EEPROM.read(0);
 
     // Path where new picture will be saved in SD Card
-    String path = "/debug/" + String(pictureNumber) + "_" + name + ".ppm";   
+    String path = "/debug/" + String(pictureNumber) + "_" + name + ".ppm";
 
-    fs::FS &fs = SD_MMC; 
+    fs::FS &fs = SD_MMC;
     Serial.printf("[PPM Mode] Picture file path: %s\n\r", path.c_str());
 
     File file = fs.open(path.c_str(), FILE_WRITE);
-    if(!file){
+    if (!file)
+    {
         Serial.println("[PPM Mode] Failed to open file in writing mode");
         return false;
-    } 
-    else {
+    }
+    else
+    {
         file.printf("P6\n%d %d\n255\n", END_RESOLUTION, END_RESOLUTION);
         for (int j = 0; j < END_RESOLUTION; ++j)
         {
@@ -1176,7 +1279,6 @@ bool saveImgToSdPPM(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3], size_t fra
     return true;
 }
 
-
 void countEEPROM()
 {
     initEEPROM();
@@ -1187,42 +1289,51 @@ void countEEPROM()
 void initSD()
 {
     initEEPROM();
-    if(debug_sd_initialised)
+    if (debug_sd_initialised)
     {
         SD_MMC.end();
     }
     debug_sd_initialised = true;
     // Serial.println("Initialising SD Card. Unplug the NeoPixel Jumper! 5s");
     // delay(5000);
-    
+
     Serial.println("Starting SD Card");
 
     pinMode(2, INPUT_PULLUP);
     pinMode(4, INPUT_PULLUP);
 
-    if(!SD_MMC.begin()){
+    if (!SD_MMC.begin())
+    {
         Serial.println("SD Card Mount Failed");
         debug_sd_initialised = false;
         return;
     }
-    
+
     uint8_t cardType = SD_MMC.cardType();
-    if(cardType == CARD_NONE){
+    if (cardType == CARD_NONE)
+    {
         Serial.println("No SD Card attached");
         debug_sd_initialised = false;
         return;
     }
 
     Serial.print("SD_MMC Card Type: ");
-    if(cardType == CARD_MMC){
+    if (cardType == CARD_MMC)
+    {
         Serial.println("MMC");
-    } else if(cardType == CARD_SD){
+    }
+    else if (cardType == CARD_SD)
+    {
         Serial.println("SDSC");
-    } else if(cardType == CARD_SDHC){
+    }
+    else if (cardType == CARD_SDHC)
+    {
         Serial.println("SDHC");
-    } else {
+    }
+    else
+    {
         Serial.println("UNKNOWN");
-    }   
+    }
 
     uint64_t cardSize = SD_MMC.cardSize() / (1024 * 1024);
     Serial.printf("SD_MMC Card Size: %lluMB\r\n", cardSize);
@@ -1231,10 +1342,10 @@ void initSD()
 
 void initEEPROM()
 {
-    if(!debug_ee_initialised)
+    if (!debug_ee_initialised)
     {
         debug_ee_initialised = true;
-        
+
         Serial.println("Initialise EEPROM");
         EEPROM.begin(EEPROM_SIZE);
         Serial.println("Done!");
@@ -1293,8 +1404,10 @@ Help: This shows the different commands (commands are case sensitive)
     h: Shows the help
 */
 
-void loop() {
-    if (debug_enabled && (millis() - last_debug_millis) >=500)   {
+void loop()
+{
+    if (debug_enabled && (millis() - last_debug_millis) >= 500)
+    {
         last_debug_millis = millis();
         debug = true;
     }
@@ -1305,7 +1418,7 @@ void loop() {
 
     mil_s = millis();
 
-    camera_fb_t  * fb = esp_camera_fb_get();
+    camera_fb_t *fb = esp_camera_fb_get();
 
     if (debug_sd_save_orig)
     {
@@ -1319,7 +1432,7 @@ void loop() {
 
     mil_1 = millis();
 
-    downsize(temp_buffer, IMAGE_WIDTH * IMAGE_HEIGHT*3);
+    downsize(temp_buffer, IMAGE_WIDTH * IMAGE_HEIGHT * 3);
 
     mil_2 = millis();
 
@@ -1327,18 +1440,26 @@ void loop() {
     {
         String r = debug_no_closest_color ? "raw_" : "color_";
         r += debug_no_brimap ? "nobri" : "bri";
-        saveImgToSdPPM(rgb_frame, END_RESOLUTION*END_RESOLUTION*3, "2_Edit_" + r);
+        saveImgToSdPPM(rgb_frame, END_RESOLUTION * END_RESOLUTION * 3, "2_Edit_" + r);
         debug_sd_save_edit = false;
     }
 
     mil_3 = millis();
-    
+
     debug_linerecogn_return = line_recogn(rgb_frame);
 
     mil_4 = millis();
 
-    if (debug){
-        Serial.print("Timing: Total: "); Serial.print(mil_4 - mil_s); Serial.print(" Recognition: "); Serial.print(mil_4 - mil_3); Serial.print(" Downsize: "); Serial.print(mil_2 - mil_1); Serial.print(" Taking Image: "); Serial.println(mil_1 - mil_s);
+    if (debug)
+    {
+        Serial.print("Timing: Total: ");
+        Serial.print(mil_4 - mil_s);
+        Serial.print(" Recognition: ");
+        Serial.print(mil_4 - mil_3);
+        Serial.print(" Downsize: ");
+        Serial.print(mil_2 - mil_1);
+        Serial.print(" Taking Image: ");
+        Serial.println(mil_1 - mil_s);
         Serial.println();
     }
 
@@ -1352,18 +1473,21 @@ void loop() {
     debug_no_closest_color = false;
     debug_no_brimap = false;
 
-    if(Serial.available())
+    if (Serial.available())
     {
         char s = Serial.read();
-        if (s == 'd') {
+        if (s == 'd')
+        {
             debug_enabled = !debug_enabled;
             String den = debug_enabled ? "On" : "Off";
             Serial.println("Debug Toogled. Debug is now " + den);
         }
-        else if (s == 'i') {
+        else if (s == 'i')
+        {
             initSD();
         }
-        else if (s == 'W') {
+        else if (s == 'W')
+        {
             if (!debug_sd_initialised)
             {
                 initSD();
@@ -1376,7 +1500,8 @@ void loop() {
             debug_no_brimap = true;
             countEEPROM();
         }
-        else if (s == 'B') {
+        else if (s == 'B')
+        {
             if (!debug_sd_initialised)
             {
                 initSD();
@@ -1389,7 +1514,8 @@ void loop() {
             debug_no_brimap = false;
             countEEPROM();
         }
-        else if (s == 'C') {
+        else if (s == 'C')
+        {
             if (!debug_sd_initialised)
             {
                 initSD();
@@ -1402,7 +1528,8 @@ void loop() {
             debug_no_brimap = false;
             countEEPROM();
         }
-        else if (s == 'o') {
+        else if (s == 'o')
+        {
             if (!debug_sd_initialised)
             {
                 initSD();
@@ -1415,7 +1542,8 @@ void loop() {
             debug_no_brimap = false;
             countEEPROM();
         }
-        else if (s == 'w') {
+        else if (s == 'w')
+        {
             if (!debug_sd_initialised)
             {
                 initSD();
@@ -1428,7 +1556,8 @@ void loop() {
             debug_no_brimap = true;
             countEEPROM();
         }
-        else if (s == 'b') {
+        else if (s == 'b')
+        {
             if (!debug_sd_initialised)
             {
                 initSD();
@@ -1441,7 +1570,8 @@ void loop() {
             debug_no_brimap = false;
             countEEPROM();
         }
-        else if (s == 'c') {
+        else if (s == 'c')
+        {
             if (!debug_sd_initialised)
             {
                 initSD();
@@ -1454,11 +1584,13 @@ void loop() {
             debug_no_brimap = false;
             countEEPROM();
         }
-        else if (s == 'e') {
+        else if (s == 'e')
+        {
             EEPROM.write(0, 0);
             EEPROM.commit();
         }
-        else if (s == 'h') {
+        else if (s == 'h')
+        {
             Serial.println("");
             Serial.println("*~~~~~~~~~~*");
             Serial.println("Help: This shows the different commands (commands are case sensitive)");
@@ -1480,13 +1612,15 @@ void loop() {
             Serial.println("*~~~~~~~~~~*");
             Serial.println("");
         }
-        else if (s == 's') {
+        else if (s == 's')
+        {
             Serial.println("Saving Brimap to sd");
             initSD();
             countEEPROM();
-            saveImgToSdPPM(brimap, END_RESOLUTION*END_RESOLUTION*3, "BRIMAP");
+            saveImgToSdPPM(brimap, END_RESOLUTION * END_RESOLUTION * 3, "BRIMAP");
         }
-        else if (s == 'p'){
+        else if (s == 'p')
+        {
             initEEPROM();
             Serial.println("");
             /*
@@ -1505,9 +1639,9 @@ void loop() {
                 Serial.printf("%03d ", EEPROM.read(i));
             }
             Serial.println("");
-
         }
-        else if (s == 'r') { 
+        else if (s == 'r')
+        {
             initEEPROM();
             //calibrateBrimap = true;
             debug_no_closest_color = true;
@@ -1517,10 +1651,10 @@ void loop() {
 
             Serial.println("Starting Calibration");
 
-            camera_fb_t  * fb = esp_camera_fb_get();
+            camera_fb_t *fb = esp_camera_fb_get();
             fmt2rgb888(fb->buf, fb->len, PIXFORMAT_JPEG, temp_buffer);
             esp_camera_fb_return(fb);
-            downsize(temp_buffer, IMAGE_WIDTH*IMAGE_HEIGHT*3);
+            downsize(temp_buffer, IMAGE_WIDTH * IMAGE_HEIGHT * 3);
             Serial.println("Starting memcpy");
             // memcpy(brimap, rgb_frame, END_RESOLUTION*END_RESOLUTION*3);
             for (int col = 0; col < END_RESOLUTION; col++)
