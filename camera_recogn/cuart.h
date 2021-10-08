@@ -18,6 +18,9 @@ const int cuart_ltype_X = 0x06;
 const int cuart_ltype_space = 0x07;
 const int cuart_ltype_unknown = 0x20;
 
+unsigned char cuart_sensor_array[3] = {0x00, 0x00, 0x00};
+bool cuart_sensor_array_changed = false;
+
 void cuart_set_line(int type, int angle, int midfactor)
 {
 	cuart_line_type = type;
@@ -26,9 +29,36 @@ void cuart_set_line(int type, int angle, int midfactor)
 	cuart_line_changed = true;
 }
 
+void cuart_set_sensor_array(unsigned char param[24])
+{
+	unsigned char tmp = 0x00;
+	for (int i = 0; i < 8; i++)
+	{
+		tmp <<= 1;
+		tmp |= param[i];
+	}
+	cuart_sensor_array[0] = tmp;
+	tmp = 0x00;
+	for (int i = 8; i < 16; i++)
+	{
+		tmp <<= 1;
+		tmp |= param[i];
+	}
+	cuart_sensor_array[1] = tmp;
+	tmp = 0x00;
+	for (int i = 16; i < 24; i++)
+	{
+		tmp <<= 1;
+		tmp |= param[i];
+	}
+	cuart_sensor_array[2] = tmp;
+	cuart_sensor_array_changed = true;
+}
+
 void cuart_set_green(bool TL, bool TR, bool DL, bool DR)
 {
 	cuart_green = ((TL << 3) |(TR << 2) |(DL << 1) |(DR));
+	cuart_green_changed = true;
 }
 
 void cuart_code(void* parameter)
@@ -55,6 +85,16 @@ void cuart_code(void* parameter)
 		    Serial1.write(cuart_green);
 		    Serial1.write(0x00);
 			Serial1.write(0xFF);		
+		}
+		if (cuart_sensor_array_changed)
+		{
+			cuart_sensor_array_changed = false;
+			Serial1.write('S');
+			Serial1.write(cuart_sensor_array[0]);
+			Serial1.write(cuart_sensor_array[1]);
+			Serial1.write(cuart_sensor_array[2]);
+			Serial1.write(0x00);
+			Serial1.write(0xFF);	
 		}
     }
 }

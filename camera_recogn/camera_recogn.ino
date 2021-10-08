@@ -53,6 +53,9 @@ int last_debug_millis = 0;
 // RECOGN_MAX_OFFSET = maximum difference between to measurements to be considered the same
 #define RECOGN_MAX_OFFSET 2
 
+// OFFSET_SENSOR_ARRAY is the offset from above to the sensor array
+#define OFFSET_SENSOR_ARRAY 2
+
 // PER_BLOCK is Calculated from the Values above.
 #define PER_BLOCK (IMAGE_HEIGHT / END_RESOLUTION)
 
@@ -738,6 +741,27 @@ float rad_to_deg(float rad)
 
 bool line_recogn(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3])
 {
+    // SENSOR ARRAY
+    unsigned char temp_cuart_sensor_array[24] = {0};
+    
+    for(int x = 0; x < END_RESOLUTION; x++)
+    {
+        int red = frame[OFFSET_SENSOR_ARRAY][x][0];
+        int green = frame[OFFSET_SENSOR_ARRAY][x][1];
+        int blue = frame[OFFSET_SENSOR_ARRAY][x][2];
+        if (red == 0 && green == 0 && blue == 0)
+        {
+            temp_cuart_sensor_array[x] = 0;
+        }
+        else
+        {
+            temp_cuart_sensor_array[x] = 1;
+        }
+    }
+    cuart_set_sensor_array(temp_cuart_sensor_array);
+
+/*
+    // Normal Recognition
     int measured_left_top[2] = {0, 0};    // red
     int measured_left_bottom[2] = {0, 0}; // red
     bool left_top_found = false;
@@ -860,22 +884,6 @@ bool line_recogn(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3])
             }
         }
     }
-
-    /*
-    // Checking if the 4 corners are equal in it self... (old version)
-    if (measured_left_top[0] == measured_top_left[0] && measured_left_top[1] == measured_top_left[1]) {
-        top_left_equal = true;
-    }
-    if (measured_right_top[0] == measured_top_right[0] && measured_right_top[1] == measured_top_right[1]) {
-        top_right_equal = true;
-    }
-    if (measured_left_bottom[0] == measured_bottom_left[0] && measured_left_bottom[1] == measured_bottom_left[1]) {
-        bottom_left_equal = true;
-    }
-    if (measured_right_bottom[0] == measured_bottom_right[0] && measured_right_bottom[1] == measured_bottom_right[1]) {
-        bottom_right_equal = true;
-    }
-    //*/
 
     if (abs(measured_left_top[0] - measured_top_left[0]) <= RECOGN_MAX_OFFSET || abs(measured_left_top[1] - measured_top_left[1]) <= RECOGN_MAX_OFFSET)
     {
@@ -1045,7 +1053,7 @@ bool line_recogn(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3])
     }
 
     cuart_set_line(ltype, angle, midfactor);
-
+//*/
     return true;
 }
 
