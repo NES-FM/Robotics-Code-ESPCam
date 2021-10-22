@@ -757,6 +757,8 @@ bool line_recogn(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3])
         {
             temp_cuart_sensor_array[x] = 1;
         }
+
+        if(debug) Serial.printf("%d ", temp_cuart_sensor_array[x]); 
     }
     cuart_set_sensor_array(temp_cuart_sensor_array);
 
