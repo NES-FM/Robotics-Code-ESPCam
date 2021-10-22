@@ -1,7 +1,7 @@
 Pin | OnBoard     |    Bemerkungen              |     V1          |   V2
 
 4:	MicroSD DATA1 ~                             ~                 ~ cRX-Cuart
-2:	MicroSD DATA0 ~                             ~                 ~ 
+2:	MicroSD DATA0 ~                             ~                 ~ Calibrate Button
 14:	MicroSD Clock ~                             ~ cRX-Cuart       ~ 
 15:	MicroSD CMD   ~                             ~ cTX-Cuart       ~ 
 13: MicroSD DATA3 ~                             ~ Neo Shift       ~ Wettkampfmodus
