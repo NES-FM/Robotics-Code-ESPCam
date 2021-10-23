@@ -49,7 +49,10 @@ int last_debug_millis = 0;
 #define OFFSET_RIGHT 18
 // END_RESOLUTION needs to be a divisor of IMAGE_HEIGHT
 #define END_RESOLUTION 24
-#define RECOGN_WAIT_THRESHOLD 5
+// RECOGN_WAIT_THRESHOLD: Starting on which pixel should it start differentiating between T and 90
+#define RECOGN_WAIT_THRESHOLD 8
+// RECOGN_SPACE_THRESHOLD: If the line is further than that, but the type
+#define RECOGN_SPACE_THRESHOLD 16
 // RECOGN_MAX_OFFSET = maximum difference between to measurements to be considered the same
 #define RECOGN_MAX_OFFSET 2
 
@@ -741,28 +744,7 @@ float rad_to_deg(float rad)
 
 bool line_recogn(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3])
 {
-    // SENSOR ARRAY
-    unsigned char temp_cuart_sensor_array[24] = {0};
-    
-    for(int x = 0; x < END_RESOLUTION; x++)
-    {
-        int red = frame[OFFSET_SENSOR_ARRAY][x][0];
-        int green = frame[OFFSET_SENSOR_ARRAY][x][1];
-        int blue = frame[OFFSET_SENSOR_ARRAY][x][2];
-        if (red == 0 && green == 0 && blue == 0)
-        {
-            temp_cuart_sensor_array[x] = 0;
-        }
-        else
-        {
-            temp_cuart_sensor_array[x] = 1;
-        }
 
-        if(debug) Serial.printf("%d ", temp_cuart_sensor_array[x]); 
-    }
-    cuart_set_sensor_array(temp_cuart_sensor_array);
-
-/*
     // Normal Recognition
     int measured_left_top[2] = {0, 0};    // red
     int measured_left_bottom[2] = {0, 0}; // red
@@ -905,7 +887,7 @@ bool line_recogn(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3])
     }
 
     // ... And by doing so getting the ltype
-    if ((top_left_equal && top_right_equal && bottom_left_equal && bottom_right_equal) || (!top_left_equal && top_right_equal && bottom_left_equal && !bottom_right_equal) || (top_left_equal && !top_right_equal && !bottom_left_equal && bottom_right_equal))
+    if ((top_left_equal && top_right_equal && bottom_left_equal && bottom_right_equal) /*|| (!top_left_equal && top_right_equal && bottom_left_equal && !bottom_right_equal) || (top_left_equal && !top_right_equal && !bottom_left_equal && bottom_right_equal)*/)
     {
         ltype = cuart_ltype_straight;
     }
@@ -992,7 +974,7 @@ bool line_recogn(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3])
     // Exception: ltype_straight, because then it is a incoming space
     if (measured_top_left[1] < RECOGN_WAIT_THRESHOLD && measured_top_right[1] < RECOGN_WAIT_THRESHOLD)
     {
-        if (ltype = cuart_ltype_straight)
+        if (ltype == cuart_ltype_straight)
         {
             ltype = cuart_ltype_space;
         }
@@ -1002,8 +984,41 @@ bool line_recogn(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3])
         }
     }
 
+    if (measured_top_left[1] > RECOGN_SPACE_THRESHOLD && measured_top_right[1] > RECOGN_SPACE_THRESHOLD)
+        ltype = cuart_ltype_space;
+
+    // SENSOR ARRAY
+    unsigned char temp_cuart_sensor_array[24] = {0};
+
+    // Two Bits: 1st signalling the crossing is centered, 2nd showing that a space is incomming, but not completely white yet
+    temp_cuart_sensor_array[0] = (measured_top_left[1] < RECOGN_WAIT_THRESHOLD && measured_top_right[1] < RECOGN_WAIT_THRESHOLD);
+    temp_cuart_sensor_array[1] = !(measured_top_left[1] > RECOGN_SPACE_THRESHOLD && measured_top_right[1] > RECOGN_SPACE_THRESHOLD);
+
+    if(debug) Serial.printf("%d ", temp_cuart_sensor_array[0]);
+    if(debug) Serial.printf("%d ", temp_cuart_sensor_array[1]);
+    
+    // Real Sensor array
+    for(int x = 2; x < END_RESOLUTION; x++)
+    {
+        int red = frame[OFFSET_SENSOR_ARRAY][x][0];
+        int green = frame[OFFSET_SENSOR_ARRAY][x][1];
+        int blue = frame[OFFSET_SENSOR_ARRAY][x][2];
+        if (red == 0 && green == 0 && blue == 0)
+        {
+            temp_cuart_sensor_array[x] = 0;
+        }
+        else
+        {
+            temp_cuart_sensor_array[x] = 1;
+        }
+
+        if(debug) Serial.printf("%d ", temp_cuart_sensor_array[x]); 
+    }
+    cuart_set_sensor_array(temp_cuart_sensor_array);
+
     if (debug)
     {
+        Serial.println("");
         Serial.print("Ltype: ");
         Serial.print(ltype);
         Serial.print("  Angle: ");
