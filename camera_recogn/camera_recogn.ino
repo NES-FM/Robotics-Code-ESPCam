@@ -57,7 +57,7 @@ int last_debug_millis = 0;
 #define RECOGN_MAX_OFFSET 2
 
 // OFFSET_SENSOR_ARRAY is the offset from above to the sensor array
-#define OFFSET_SENSOR_ARRAY 2
+#define OFFSET_SENSOR_ARRAY 4
 
 // PER_BLOCK is Calculated from the Values above.
 #define PER_BLOCK (IMAGE_HEIGHT / END_RESOLUTION)
@@ -211,6 +211,9 @@ void setup()
 
     loadBrimap();
 
+    // Recalibrate button
+    pinMode(2, INPUT_PULLUP);
+
     Serial.print("Main started on core ");
     Serial.println(xPortGetCoreID());
 }
@@ -240,6 +243,7 @@ String closestColor(int r,int g,int b) {
 ///*
 String closestColor(int r, int g, int b)
 {
+    /*
     if (r > 220 && g > 220 && b > 220)
     {
         return "white";
@@ -251,6 +255,22 @@ String closestColor(int r, int g, int b)
     else
     {
         return "black";
+    }
+    //*/
+
+    if (r > 200 && g > 200 && b > 200)
+    {
+        if (((r + b) / 2) < (g - 10))
+            return "green";
+        else
+            return "white";
+    }
+    else
+    {
+        if (((r + b) / 2) < (g - 20))
+            return "green";
+        else
+            return "black";
     }
 
     /*
@@ -987,11 +1007,13 @@ bool line_recogn(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3])
     if (measured_top_left[1] > RECOGN_SPACE_THRESHOLD && measured_top_right[1] > RECOGN_SPACE_THRESHOLD)
         ltype = cuart_ltype_space;
 
+    cuart_set_line(ltype, angle, midfactor);
+
     // SENSOR ARRAY
     unsigned char temp_cuart_sensor_array[24] = {0};
 
     // Two Bits: 1st signalling the crossing is centered, 2nd showing that a space is incomming, but not completely white yet
-    temp_cuart_sensor_array[0] = (measured_top_left[1] < RECOGN_WAIT_THRESHOLD && measured_top_right[1] < RECOGN_WAIT_THRESHOLD);
+    temp_cuart_sensor_array[0] = (measured_top_left[1] < (RECOGN_WAIT_THRESHOLD+1) && measured_top_right[1] < (RECOGN_WAIT_THRESHOLD+1));
     temp_cuart_sensor_array[1] = !(measured_top_left[1] > RECOGN_SPACE_THRESHOLD && measured_top_right[1] > RECOGN_SPACE_THRESHOLD);
 
     if(debug) Serial.printf("%d ", temp_cuart_sensor_array[0]);
@@ -1011,6 +1033,11 @@ bool line_recogn(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3])
         {
             temp_cuart_sensor_array[x] = 1;
         }
+
+        // if (red > 0 || green > 0 || blue > 0)
+        //     temp_cuart_sensor_array[x] = 1;
+        // else
+        //     temp_cuart_sensor_array[x] = 0;
 
         if(debug) Serial.printf("%d ", temp_cuart_sensor_array[x]); 
     }
@@ -1068,8 +1095,6 @@ bool line_recogn(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3])
         Serial.println(measured_bottom_right[1]);
         Serial.println();
     }
-
-    cuart_set_line(ltype, angle, midfactor);
 //*/
     return true;
 }
@@ -1324,8 +1349,15 @@ void initSD()
 
     Serial.println("Starting SD Card");
 
-    pinMode(2, INPUT_PULLUP);
-    pinMode(4, INPUT_PULLUP);
+    // pinMode(2, INPUT_PULLUP);
+    // pinMode(4, INPUT_PULLUP);
+
+    // pinMode(2, OUTPUT);
+    // pinMode(4, OUTPUT);
+    // pinMode(12, OUTPUT);
+    // pinMode(13, OUTPUT);
+    // pinMode(14, OUTPUT);
+    // pinMode(15, OUTPUT);
 
     if (!SD_MMC.begin())
     {
@@ -1395,6 +1427,36 @@ void saveBrimap()
     EEPROM.write(EEPROM_BRIMAP_SIZE, END_RESOLUTION);
     EEPROM.put(EEPROM_BRIMAP_DATA, brimap);
     EEPROM.commit();
+}
+
+void calibrate_brimap()
+{
+    initEEPROM();
+    //calibrateBrimap = true;
+    debug_no_closest_color = true;
+    debug_sd_save_edit = false;
+    debug_sd_save_orig = false;
+    debug_no_brimap = true;
+
+    Serial.println("Starting Calibration");
+
+    camera_fb_t *fb = esp_camera_fb_get();
+    fmt2rgb888(fb->buf, fb->len, PIXFORMAT_JPEG, temp_buffer);
+    esp_camera_fb_return(fb);
+    downsize(temp_buffer, IMAGE_WIDTH * IMAGE_HEIGHT * 3);
+    Serial.println("Starting memcpy");
+    // memcpy(brimap, rgb_frame, END_RESOLUTION*END_RESOLUTION*3);
+    for (int col = 0; col < END_RESOLUTION; col++)
+    {
+        for (int row = 0; row < END_RESOLUTION; row++)
+        {
+            brimap[col][row][0] = constrain(rgb_frame[col][row][0] + 10, 0, 255);
+            brimap[col][row][1] = constrain(rgb_frame[col][row][1] + 10, 0, 255);
+            brimap[col][row][2] = constrain(rgb_frame[col][row][2] + 10, 0, 255);
+        }
+    }
+    saveBrimap();
+    Serial.println("Done Saving the BRIMAP");
 }
 
 unsigned long mil_s = 0;
@@ -1494,6 +1556,13 @@ void loop()
     //Serial.printf("\nTotal: %3d, s-1: %3d, 1-2: %3d, 2-3: %3d, 3-4: %3d\n\n", mil_4 - mil_s, mil_1 - mil_s, mil_2 - mil_1, mil_3 - mil_2, mil_4 - mil_3);
 
     //delay(1000);
+
+    if (digitalRead(2) == LOW) 
+    {
+        calibrate_brimap();
+        while(digitalRead(2) == LOW) {}
+    }
+
 
     debug_no_closest_color = false;
     debug_no_brimap = false;
@@ -1667,32 +1736,7 @@ void loop()
         }
         else if (s == 'r')
         {
-            initEEPROM();
-            //calibrateBrimap = true;
-            debug_no_closest_color = true;
-            debug_sd_save_edit = false;
-            debug_sd_save_orig = false;
-            debug_no_brimap = true;
-
-            Serial.println("Starting Calibration");
-
-            camera_fb_t *fb = esp_camera_fb_get();
-            fmt2rgb888(fb->buf, fb->len, PIXFORMAT_JPEG, temp_buffer);
-            esp_camera_fb_return(fb);
-            downsize(temp_buffer, IMAGE_WIDTH * IMAGE_HEIGHT * 3);
-            Serial.println("Starting memcpy");
-            // memcpy(brimap, rgb_frame, END_RESOLUTION*END_RESOLUTION*3);
-            for (int col = 0; col < END_RESOLUTION; col++)
-            {
-                for (int row = 0; row < END_RESOLUTION; row++)
-                {
-                    brimap[col][row][0] = constrain(rgb_frame[col][row][0] + 10, 0, 255);
-                    brimap[col][row][1] = constrain(rgb_frame[col][row][1] + 10, 0, 255);
-                    brimap[col][row][2] = constrain(rgb_frame[col][row][2] + 10, 0, 255);
-                }
-            }
-            saveBrimap();
-            Serial.println("Done Saving the BRIMAP");
+            calibrate_brimap();
         }
     }
 }
