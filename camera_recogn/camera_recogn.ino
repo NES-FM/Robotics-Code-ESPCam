@@ -1009,7 +1009,7 @@ bool line_recogn(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3])
     unsigned char temp_cuart_sensor_array[24] = {0};
 
     // Two Bits: 1st signalling the crossing is centered, 2nd showing that a space is incomming, but not completely white yet
-    temp_cuart_sensor_array[0] = (measured_top_left[1] < (RECOGN_WAIT_THRESHOLD+1) && measured_top_right[1] < (RECOGN_WAIT_THRESHOLD+1));
+    temp_cuart_sensor_array[0] = !(measured_top_left[1] > (RECOGN_WAIT_THRESHOLD+2) || measured_top_right[1] > (RECOGN_WAIT_THRESHOLD+2));
     temp_cuart_sensor_array[1] = !(measured_top_left[1] > RECOGN_SPACE_THRESHOLD && measured_top_right[1] > RECOGN_SPACE_THRESHOLD);
 
     if(debug) Serial.printf("%d ", temp_cuart_sensor_array[0]);
