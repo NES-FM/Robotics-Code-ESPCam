@@ -2,6 +2,10 @@
    "folders": [
       {
          "path": "."
+      },
+      {
+         "name": "PIO_Camera_Recogn",
+         "path": "PIO_Camera_Recogn"
       }
    ],
    "settings": {}
