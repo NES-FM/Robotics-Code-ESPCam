@@ -43,11 +43,15 @@ void setup()
 
     pinMode(12, INPUT_PULLUP);
 
-    pixels.begin();
-    pixels.show();
+    // Temporärer test für weiße LED
 
-    pixels.fill(pixels.Color(156, 156, 156));
-    pixels.show();
+    // pixels.begin();
+    // pixels.show();
+
+    // pixels.fill(pixels.Color(156, 156, 156));
+    // pixels.show();
+    pinMode(4, OUTPUT);
+    digitalWrite(4, HIGH);
 
     init_camera();
 

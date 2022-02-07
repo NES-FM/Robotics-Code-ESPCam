@@ -105,8 +105,11 @@ void setup()
     pixels.begin();
     pixels.show();
 
-    pixels.fill(pixels.Color(156, 156, 156));
-    pixels.show();
+    // pixels.fill(pixels.Color(156, 156, 156));
+    // pixels.show();
+
+    pinMode(4, OUTPUT);
+    digitalWrite(4, HIGH);
 
     Serial.println("1");
     /*
