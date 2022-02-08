@@ -45,13 +45,13 @@ void setup()
 
     // Temporärer test für weiße LED
 
-    // pixels.begin();
-    // pixels.show();
+    pixels.begin();
+    pixels.show();
 
-    // pixels.fill(pixels.Color(156, 156, 156));
-    // pixels.show();
-    pinMode(4, OUTPUT);
-    digitalWrite(4, HIGH);
+    pixels.fill(pixels.Color(156, 156, 156));
+    pixels.show();
+    // pinMode(4, OUTPUT);
+    // digitalWrite(4, HIGH);
 
     init_camera();
 

@@ -10,9 +10,9 @@
 #define OFFSET_RIGHT 18
 // END_RESOLUTION needs to be a divisor of IMAGE_HEIGHT
 #define END_RESOLUTION 24
-// RECOGN_WAIT_THRESHOLD: Starting on which pixel should it start using all of the recognition algorithms
-#define RECOGN_WAIT_THRESHOLD 8
-// RECOGN_WAIT_THRESHOLD_BOTTOM: Until which pixel should it use all of the recognition algorithms
+// RECOGN_WAIT_THRESHOLD: Starting on which pixel should it start using all of the recognition algorithms // was 8
+#define RECOGN_WAIT_THRESHOLD 10
+// RECOGN_WAIT_THRESHOLD_BOTTOM: Until which pixel should it use all of the recognition algorithms // was 18
 #define RECOGN_WAIT_THRESHOLD_BOTTOM 18
 // RECOGN_SPACE_THRESHOLD: If the line is further than that, but the type
 #define RECOGN_SPACE_THRESHOLD 16
