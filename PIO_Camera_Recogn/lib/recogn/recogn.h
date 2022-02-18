@@ -8,6 +8,15 @@ float rad_to_deg(float rad)
     return ((rad * 4068) / 71);
 }
 
+bool green_is_point_left_of_line(int point_x, int point_y, int top_mid_x, int top_mid_y, int bottom_mid_x, int bottom_mid_y)
+{
+    //Steigung:
+    float m = (bottom_mid_x - top_mid_x)/(bottom_mid_y - top_mid_y);
+    //Achsenabschnitt:
+    float c = top_mid_x - (m * top_mid_y);
+    return point_x < (m * point_y + c);
+}
+
 bool line_recogn(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3])
 {
     int measured_left_top[2] = {0, 0};    // red
@@ -93,15 +102,8 @@ bool line_recogn(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3])
         }
     }
 
-    // Only measure certain things if the line is centered enough
-    distance_from_top = (measured_top_left[1] > RECOGN_WAIT_THRESHOLD || measured_top_right[1] > RECOGN_WAIT_THRESHOLD);
-    distance_from_bottom = (measured_bottom_left[1] <= RECOGN_WAIT_THRESHOLD_BOTTOM || measured_bottom_right[1] <= RECOGN_WAIT_THRESHOLD_BOTTOM);
-
-    // Standard Ltype, angle, midfactor stuff
-    if (distance_from_top && distance_from_bottom)
-    {
-        // iterating from Top to Bottom
-        for (int y = 0; y < END_RESOLUTION; y++)
+    // iterating from Top to Bottom
+    for (int y = 0; y < END_RESOLUTION; y++)
         {
             // iterating from left to right
             for (int x = 0; x < END_RESOLUTION; x++)
@@ -143,6 +145,24 @@ bool line_recogn(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3])
             }
         }
 
+    int green_left_mid_coordinate = int((measured_top_left[1] + measured_bottom_left[1]) / 2); // y
+    int green_right_mid_coordinate = int((measured_top_right[1] + measured_bottom_right[1]) / 2); // y
+    int green_top_mid_coordinate = int((measured_left_top[0] + measured_right_top[0]) / 2); // x
+    int green_bottom_mid_coordinate = int((measured_left_bottom[0] + measured_right_bottom[0]) / 2); // x
+
+    // Only measure certain things if the line is centered enough
+    /*
+    distance_from_top = (measured_top_left[1] > RECOGN_WAIT_THRESHOLD || measured_top_right[1] > RECOGN_WAIT_THRESHOLD);
+    distance_from_bottom = (measured_bottom_left[1] <= RECOGN_WAIT_THRESHOLD_BOTTOM || measured_bottom_right[1] <= RECOGN_WAIT_THRESHOLD_BOTTOM);
+    //*/
+    ///*
+    distance_from_top = ((green_left_mid_coordinate + green_right_mid_coordinate) / 2) > RECOGN_WAIT_THRESHOLD;
+    distance_from_bottom = ((green_left_mid_coordinate + green_right_mid_coordinate) / 2) < RECOGN_WAIT_THRESHOLD_BOTTOM;
+    //*/
+
+    // Standard Ltype, angle, midfactor stuff
+    if (distance_from_top && distance_from_bottom)
+    {
         if (abs(measured_left_top[0] - measured_top_left[0]) <= RECOGN_MAX_OFFSET || abs(measured_left_top[1] - measured_top_left[1]) <= RECOGN_MAX_OFFSET)
         {
             top_left_equal = true;
@@ -247,6 +267,24 @@ bool line_recogn(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3])
         if (measured_top_left[1] > RECOGN_SPACE_THRESHOLD && measured_top_right[1] > RECOGN_SPACE_THRESHOLD)
             ltype = cuart_ltype_space;
     }
+    else
+    {
+        // red
+        delta[0] = measured_left_bottom[0] - measured_left_top[0];
+        delta[1] = measured_left_bottom[1] - measured_left_top[1];
+        left_angle = constrain(round(rad_to_deg(atan2(delta[1], delta[0]))) - 90, -90, 90);
+        // blue
+        delta[0] = measured_right_bottom[0] - measured_right_top[0];
+        delta[1] = measured_right_bottom[1] - measured_right_top[1];
+        right_angle = constrain(round(rad_to_deg(atan2(delta[1], delta[0]))) - 90, -90, 90);
+
+        top_midfactor = int(int((measured_left_top[0] + measured_right_top[0]) / 2) - ((END_RESOLUTION - 1) / 2));
+        bottom_midfactor = int(int((measured_left_bottom[0] + measured_right_bottom[0]) / 2) - ((END_RESOLUTION - 1) / 2));
+
+        ltype = cuart_ltype_unknown;
+        angle = (left_angle + right_angle) / 2;
+        midfactor = (top_midfactor + bottom_midfactor) / 2;
+    }
     cuart_set_line(ltype, angle, midfactor);
 
     // SENSOR ARRAY
@@ -285,6 +323,7 @@ bool line_recogn(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3])
 
     if (debug)
     {
+        Serial.println("");
         Serial.println("");
         Serial.print("Ltype: ");
         Serial.print(ltype);
@@ -334,10 +373,13 @@ bool line_recogn(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3])
         Serial.print("|");
         Serial.println(measured_bottom_right[1]);
         Serial.println();
+
+        Serial.printf("Top Mid: %d, Bot Mid: %d, Left Mid: %d, Right Mid: %d\r\n", green_top_mid_coordinate, green_bottom_mid_coordinate, green_left_mid_coordinate, green_right_mid_coordinate);
+        Serial.println();
     }
 
     // Green Recognition
-    if (distance_from_top && distance_from_bottom)
+    if (true)//distance_from_top && distance_from_bottom)
     {
         // bool first_green = false;
         // bool second_green = false;
@@ -355,6 +397,49 @@ bool line_recogn(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3])
             {
                 if (frame[y][x][0] == 0 && frame[y][x][1] == 255 && frame[y][x][2] == 0)
                 {
+                    /*
+                    if (y > green_left_mid_coordinate && x < green_bottom_mid_coordinate)
+                    {
+                        bl += 1;
+                    }
+                    else if (y > green_right_mid_coordinate && x > green_bottom_mid_coordinate)
+                    {
+                        br += 1;
+                    }
+                    else if (y < green_left_mid_coordinate && x < green_top_mid_coordinate)
+                    {
+                        tl += 1;
+                    }
+                    else if (y < green_right_mid_coordinate && x > green_top_mid_coordinate)
+                    {
+                        tr += 1;
+                    }*/
+
+                    if (green_is_point_left_of_line(x, y, green_top_mid_coordinate, 1, green_bottom_mid_coordinate, 23))
+                    {
+                        if (y > green_left_mid_coordinate)
+                        {
+                            bl += 1;
+                        }
+                        else
+                        {
+                            tl += 1;
+                        }
+                    }
+                    else
+                    {
+                        if (y > green_right_mid_coordinate)
+                        {
+                            br += 1;
+                        }
+                        else
+                        {
+                            tr += 1;
+                        }
+                    }
+
+                    if (debug) Serial.printf("Green point at: %d|%d\r\n", x, y);
+                    /*
                     if (y < (END_RESOLUTION / 2))
                     {
                         if (x > (END_RESOLUTION / 2))
@@ -370,6 +455,7 @@ bool line_recogn(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3])
                             bl += 1;
                     }
                     if (debug) Serial.printf("Green point at: %d|%d. T: %s, R: %s", x, y, y < (END_RESOLUTION / 2) ? "T" : "F", x > (END_RESOLUTION / 2) ? "T" : "F");
+                    //*/
                 }
             }
         }
