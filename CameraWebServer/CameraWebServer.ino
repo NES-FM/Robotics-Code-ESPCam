@@ -41,6 +41,11 @@ Adafruit_NeoPixel pixels = Adafruit_NeoPixel(4, 0, NEO_GRB + NEO_KHZ800);
 
 void startCameraServer();
 
+IPAddress* local = new IPAddress(192,168,178,124);
+IPAddress* dns = new IPAddress(192,168,178,1);
+IPAddress* gateway = new IPAddress(192,168,178,1);
+IPAddress* subnet = new IPAddress(255,255,255,0);
+
 void setup() {
   Serial.begin(115200);
   /*SerialBT.begin("ESP32Camera"); //Bluetooth device name
@@ -49,11 +54,14 @@ void setup() {
   Serial.println();
 
   pixels.begin();
-  pixels.fill(pixels.Color(80, 80, 80));
+  pixels.fill(pixels.Color(156, 156, 156));
   pixels.show();
 
   delay(1000);
 
+  WiFi.mode(WIFI_STA);
+  WiFi.config(*local, *gateway, *subnet, *dns);
+  WiFi.setHostname("ESP-CAM");
   WiFi.begin(ssid, password);
 
   while (WiFi.status() != WL_CONNECTED) {
