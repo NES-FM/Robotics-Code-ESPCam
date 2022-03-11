@@ -11,9 +11,12 @@ float rad_to_deg(float rad)
 bool green_is_point_left_of_line(int point_x, int point_y, int top_mid_x, int top_mid_y, int bottom_mid_x, int bottom_mid_y)
 {
     //Steigung:
-    float m = (bottom_mid_x - top_mid_x)/(bottom_mid_y - top_mid_y);
+    float t = (bottom_mid_x - top_mid_x);
+    float s = (bottom_mid_y - top_mid_y);
+    float m = (t / s);
     //Achsenabschnitt:
     float c = top_mid_x - (m * top_mid_y);
+    if (debug)Serial.printf("Is line left? P(%d|%d) TopMid(%d|%d) BottomMid(%d|%d) c:%f m:%f\r\n", point_x, point_y, top_mid_x, top_mid_y, bottom_mid_x, bottom_mid_y, c, m);
     return point_x < (m * point_y + c);
 }
 
@@ -391,9 +394,9 @@ bool line_recogn(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3])
         int bl = 0;
         int br = 0;
 
-        for (int x = 0; x < END_RESOLUTION; x++)
+        for (int y = 0; y < END_RESOLUTION; y++)
         {
-            for (int y = END_RESOLUTION-1; y >= 0; y--)
+            for (int x = 0; x < END_RESOLUTION; x++)
             {
                 if (frame[y][x][0] == 0 && frame[y][x][1] == 255 && frame[y][x][2] == 0)
                 {
@@ -414,8 +417,8 @@ bool line_recogn(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3])
                     {
                         tr += 1;
                     }*/
-
-                    if (green_is_point_left_of_line(x, y, green_top_mid_coordinate, 1, green_bottom_mid_coordinate, 23))
+                    bool is_left = green_is_point_left_of_line(x, y, green_top_mid_coordinate, 1, green_bottom_mid_coordinate, 23);
+                    if (is_left)
                     {
                         if (y > green_left_mid_coordinate)
                         {
@@ -466,6 +469,25 @@ bool line_recogn(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3])
     {
         cuart_set_green(false, false, false, false);
     }
+
+    /* if (debug)
+    {
+        for (int y = 0; y < END_RESOLUTION; y++)
+        {
+            for (int x = 0; x < END_RESOLUTION; x++)
+            {
+                if (green_is_point_left_of_line(x, y, green_top_mid_coordinate, 1, green_bottom_mid_coordinate, 23))
+                {
+                    Serial.print("T");
+                }
+                else
+                {
+                    Serial.print("F");
+                }
+            }
+            Serial.println("");
+        }
+    }*/
 
     return true;
 }           

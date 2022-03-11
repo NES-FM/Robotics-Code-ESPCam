@@ -77,7 +77,7 @@ unsigned long mil_6 = 0;
 void loop() 
 {
     serial_interface_tick();
-    if (debug_enabled && (millis() - last_debug_millis) >= 500)
+    if (debug_enabled && (millis() - last_debug_millis) >= 1000)
     {
         last_debug_millis = millis();
         debug = true;
