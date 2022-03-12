@@ -16,7 +16,7 @@ bool green_is_point_left_of_line(int point_x, int point_y, int top_mid_x, int to
     float m = (t / s);
     //Achsenabschnitt:
     float c = top_mid_x - (m * top_mid_y);
-    if (debug)Serial.printf("Is line left? P(%d|%d) TopMid(%d|%d) BottomMid(%d|%d) c:%f m:%f\r\n", point_x, point_y, top_mid_x, top_mid_y, bottom_mid_x, bottom_mid_y, c, m);
+    // if (debug)Serial.printf("Is line left? P(%d|%d) TopMid(%d|%d) BottomMid(%d|%d) c:%f m:%f\r\n", point_x, point_y, top_mid_x, top_mid_y, bottom_mid_x, bottom_mid_y, c, m);
     return point_x < (m * point_y + c);
 }
 
