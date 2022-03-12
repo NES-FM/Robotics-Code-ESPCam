@@ -159,8 +159,8 @@ bool line_recogn(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3])
     distance_from_bottom = (measured_bottom_left[1] <= RECOGN_WAIT_THRESHOLD_BOTTOM || measured_bottom_right[1] <= RECOGN_WAIT_THRESHOLD_BOTTOM);
     //*/
     ///*
-    distance_from_top = ((green_left_mid_coordinate + green_right_mid_coordinate) / 2) > RECOGN_WAIT_THRESHOLD;
-    distance_from_bottom = ((green_left_mid_coordinate + green_right_mid_coordinate) / 2) < RECOGN_WAIT_THRESHOLD_BOTTOM;
+    distance_from_top = ((green_left_mid_coordinate > RECOGN_WAIT_THRESHOLD) || (green_right_mid_coordinate > RECOGN_WAIT_THRESHOLD));  //((green_left_mid_coordinate + green_right_mid_coordinate) / 2) > RECOGN_WAIT_THRESHOLD;
+    distance_from_bottom = ((green_left_mid_coordinate < RECOGN_WAIT_THRESHOLD_BOTTOM) || (green_right_mid_coordinate < RECOGN_WAIT_THRESHOLD_BOTTOM));  //((green_left_mid_coordinate + green_right_mid_coordinate) / 2) < RECOGN_WAIT_THRESHOLD_BOTTOM;
     //*/
 
     // Standard Ltype, angle, midfactor stuff

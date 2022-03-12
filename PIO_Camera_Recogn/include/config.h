@@ -6,8 +6,8 @@
 #define IMAGE_WIDTH 160
 #define IMAGE_HEIGHT 120
 
-// User Configureable stuff
-#define OFFSET_RIGHT 18
+// User Configureable stuff (was 18)
+#define OFFSET_RIGHT 22
 // END_RESOLUTION needs to be a divisor of IMAGE_HEIGHT
 #define END_RESOLUTION 24
 // RECOGN_WAIT_THRESHOLD: Starting on which pixel should it start using all of the recognition algorithms // was 8
@@ -20,7 +20,7 @@
 #define RECOGN_MAX_OFFSET 2
 
 // OFFSET_SENSOR_ARRAY is the offset from above to the sensor array
-#define OFFSET_SENSOR_ARRAY 4
+#define OFFSET_SENSOR_ARRAY 5
 
 // PER_BLOCK is Calculated from the Values above.
 #define PER_BLOCK (IMAGE_HEIGHT / END_RESOLUTION)
