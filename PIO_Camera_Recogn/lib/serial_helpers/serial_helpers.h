@@ -5,7 +5,7 @@
 #include "config.h"
 
 void print_frame(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3]);
-void print_width(uint8_t *frame);
+void print_whole_frame(uint8_t *frame);
 void serial_interface_tick();
 
 /*
@@ -168,6 +168,9 @@ void serial_interface_tick()
             Serial.println("c: Saves Downsize/Brimap/Color to SD");
             Serial.println("e: Resets EEPROM to 0");
             Serial.println("p: prints whole content of eeprom");
+            Serial.println("f: prints final frame to serial");
+            Serial.println("m: prints brimap to serial");
+            // Serial.println("w: prints whole original frame to serial");
             Serial.println("h: Shows this help");
             Serial.println("*~~~~~~~~~~*");
             Serial.println("");
@@ -203,6 +206,14 @@ void serial_interface_tick()
         else if (s == 'r')
         {
             calibrate_brimap();
+        }
+        else if (s == 'f')
+        {
+            print_frame(rgb_frame);
+        }
+        else if (s == 'm')
+        {
+            print_frame(brimap);
         }
     }
 }
