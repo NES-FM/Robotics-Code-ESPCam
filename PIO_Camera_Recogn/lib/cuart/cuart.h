@@ -137,7 +137,7 @@ void cuart_code(void* parameter)
 
 void cuart_init()
 {
-    Serial1.begin(115200, SERIAL_8N1, 14, 15);
+    Serial1.begin(115200, SERIAL_8N1, PIN_CRX_CUART, PIN_CTX_CUART);
     xTaskCreatePinnedToCore(cuart_code, /* Function to implement the task */
         "Cuart", /* Name of the task */
         10000, /* Stack size in words */

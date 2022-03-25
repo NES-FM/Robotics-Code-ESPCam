@@ -1,5 +1,7 @@
 #include <Arduino.h>
 
+#include "pin_definitions.h"
+
 #include "Adafruit_NeoPixel.h"
 #include <math.h>
 #include "soc/soc.h"          // Disable brownout problems
@@ -28,20 +30,20 @@ int last_debug_millis = 0;
 #include "serial_helpers.h"
 #include "recogn.h"
 
-Adafruit_NeoPixel pixels = Adafruit_NeoPixel(4, 16, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel pixels = Adafruit_NeoPixel(4, PIN_NEO_SHIFT, NEO_GRB + NEO_KHZ800);
 
 void setup() 
 {
-    pinMode(33, OUTPUT);
-    digitalWrite(33, LOW);
+    pinMode(LED_BUILTIN, OUTPUT);
+    digitalWrite(LED_BUILTIN, LOW);
     delay(500);
-    digitalWrite(33, HIGH);
+    digitalWrite(LED_BUILTIN, HIGH);
 
     Serial.begin(115200);
     Serial.setDebugOutput(true);
     Serial.println();
 
-    pinMode(12, INPUT_PULLUP);
+    pinMode(PIN_DIP_WETTKAMPFMODUS, INPUT_PULLUP);
 
     // Temporärer test für weiße LED
 
@@ -60,7 +62,7 @@ void setup()
     loadBrimap();
 
     // Recalibrate button
-    pinMode(2, INPUT_PULLUP);
+    pinMode(PIN_CAMCALIB, INPUT_PULLUP);
 
     Serial.print("Main started on core ");
     Serial.println(xPortGetCoreID());
@@ -137,10 +139,10 @@ void loop()
     if (!debug_linerecogn_return && debug)
         Serial.println("!! Line Recogn. returned False !!");
 
-    if (digitalRead(2) == LOW) 
+    if (digitalRead(PIN_CAMCALIB) == LOW) 
     {
         calibrate_brimap();
-        while(digitalRead(2) == LOW) {}
+        while(digitalRead(PIN_CAMCALIB) == LOW) {}
     }
 
 
