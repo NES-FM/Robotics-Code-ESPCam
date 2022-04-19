@@ -294,8 +294,8 @@ bool line_recogn(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3])
     unsigned char temp_cuart_sensor_array[24] = {0};
 
     // Two Bits: 1st signalling the crossing is centered, 2nd showing that a space is incomming, but not completely white yet
-    temp_cuart_sensor_array[0] = !(distance_from_top && distance_from_bottom);//!(measured_top_left[1] > (RECOGN_WAIT_THRESHOLD+2) || measured_top_right[1] > (RECOGN_WAIT_THRESHOLD+2));
-    temp_cuart_sensor_array[1] = !(measured_top_left[1] > RECOGN_SPACE_THRESHOLD && measured_top_right[1] > RECOGN_SPACE_THRESHOLD);
+    temp_cuart_sensor_array[0] = !((measured_top_left[1] > RECOGN_WAIT_THRESHOLD && measured_bottom_left[1] < RECOGN_WAIT_THRESHOLD_BOTTOM) || (measured_top_right[1] > RECOGN_WAIT_THRESHOLD && measured_bottom_right[1] < RECOGN_WAIT_THRESHOLD_BOTTOM));//!(distance_from_top && distance_from_bottom);//!(measured_top_left[1] > (RECOGN_WAIT_THRESHOLD+2) || measured_top_right[1] > (RECOGN_WAIT_THRESHOLD+2));
+    temp_cuart_sensor_array[1] = true;//!(measured_top_left[1] > RECOGN_SPACE_THRESHOLD && measured_top_right[1] > RECOGN_SPACE_THRESHOLD);
 
     if(debug) Serial.printf("%d ", temp_cuart_sensor_array[0]);
     if(debug) Serial.printf("%d ", temp_cuart_sensor_array[1]);
@@ -417,7 +417,18 @@ bool line_recogn(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3])
                     {
                         tr += 1;
                     }*/
-                    bool is_left = green_is_point_left_of_line(x, y, green_top_mid_coordinate, 1, green_bottom_mid_coordinate, 23);
+                    
+                    bool is_left = false;
+
+                    // In Case of T Crossing / Circle: fall back to using only bottom
+                    if (measured_left_top[1] > 5 && measured_right_top[1] > 5)
+                    {
+                        is_left = x < green_bottom_mid_coordinate;
+                    }
+                    else
+                    {
+                        is_left = green_is_point_left_of_line(x, y, green_top_mid_coordinate, 1, green_bottom_mid_coordinate, 23);
+                    } 
                     if (is_left)
                     {
                         if (y > green_left_mid_coordinate)
