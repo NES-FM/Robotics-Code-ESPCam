@@ -20,7 +20,7 @@
 #define RECOGN_MAX_OFFSET 2
 
 // OFFSET_SENSOR_ARRAY is the offset from above to the sensor array
-#define OFFSET_SENSOR_ARRAY 5
+#define OFFSET_SENSOR_ARRAY 3
 
 // PER_BLOCK is Calculated from the Values above.
 #define PER_BLOCK (IMAGE_HEIGHT / END_RESOLUTION)
