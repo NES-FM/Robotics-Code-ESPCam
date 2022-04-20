@@ -68,7 +68,7 @@ bool line_recogn(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3])
         // iterating from Top to Bottom
         for (int y = 0; y < END_RESOLUTION; y++)
         {
-            if (frame[y][x][0] == 0 && frame[y][x][1] == 0 && frame[y][x][2] == 0)
+            if (is_pixel_black_or_silver(x, y))
             {
                 if (top_left_found)
                 {
@@ -87,7 +87,7 @@ bool line_recogn(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3])
         // iterating from right to left
         for (int y = END_RESOLUTION - 1; y >= 0; y--)
         {
-            if (frame[y][x][0] == 0 && frame[y][x][1] == 0 && frame[y][x][2] == 0)
+            if (is_pixel_black_or_silver(x, y))
             {
                 if (bottom_left_found)
                 {
@@ -111,7 +111,7 @@ bool line_recogn(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3])
             // iterating from left to right
             for (int x = 0; x < END_RESOLUTION; x++)
             {
-                if (frame[y][x][0] == 0 && frame[y][x][1] == 0 && frame[y][x][2] == 0)
+                if (is_pixel_black_or_silver(x, y))
                 {
                     if (left_top_found)
                     {
@@ -130,7 +130,7 @@ bool line_recogn(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3])
             // iterating from right to left
             for (int x = END_RESOLUTION - 1; x >= 0; x--)
             {
-                if (frame[y][x][0] == 0 && frame[y][x][1] == 0 && frame[y][x][2] == 0)
+                if (is_pixel_black_or_silver(x, y))
                 {
                     if (right_top_found)
                     {
@@ -301,12 +301,10 @@ bool line_recogn(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3])
     if(debug) Serial.printf("%d ", temp_cuart_sensor_array[1]);
     
     // Real Sensor array
+    if(debug) Serial.print("Array: ");
     for(int x = 2; x < END_RESOLUTION; x++)
     {
-        int red = frame[OFFSET_SENSOR_ARRAY][x][0];
-        int green = frame[OFFSET_SENSOR_ARRAY][x][1];
-        int blue = frame[OFFSET_SENSOR_ARRAY][x][2];
-        if (red == 0 && green == 0 && blue == 0)
+        if (is_pixel_black_or_silver(x, OFFSET_SENSOR_ARRAY))
         {
             temp_cuart_sensor_array[x] = 0;
         }
@@ -381,7 +379,7 @@ bool line_recogn(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3])
         Serial.println();
     }
 
-    // Green Recognition
+    // Green, Red, Silver Recognition
     if (true)//distance_from_top && distance_from_bottom)
     {
         // bool first_green = false;
@@ -394,11 +392,15 @@ bool line_recogn(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3])
         int bl = 0;
         int br = 0;
 
+        int red = 0;
+
+        int silver = 0;
+
         for (int y = 0; y < END_RESOLUTION; y++)
         {
             for (int x = 0; x < END_RESOLUTION; x++)
             {
-                if (frame[y][x][0] == 0 && frame[y][x][1] == 255 && frame[y][x][2] == 0)
+                if (is_pixel_green(x, y))
                 {
                     /*
                     if (y > green_left_mid_coordinate && x < green_bottom_mid_coordinate)
@@ -421,7 +423,7 @@ bool line_recogn(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3])
                     bool is_left = false;
 
                     // In Case of T Crossing / Circle: fall back to using only bottom
-                    if (measured_left_top[1] > 5 && measured_right_top[1] > 5)
+                    if (measured_left_top[1] > 5 || measured_right_top[1] > 5)
                     {
                         is_left = x < green_bottom_mid_coordinate;
                     }
@@ -429,6 +431,7 @@ bool line_recogn(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3])
                     {
                         is_left = green_is_point_left_of_line(x, y, green_top_mid_coordinate, 1, green_bottom_mid_coordinate, 23);
                     } 
+                    
                     if (is_left)
                     {
                         if (y > green_left_mid_coordinate)
@@ -471,10 +474,21 @@ bool line_recogn(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3])
                     if (debug) Serial.printf("Green point at: %d|%d. T: %s, R: %s", x, y, y < (END_RESOLUTION / 2) ? "T" : "F", x > (END_RESOLUTION / 2) ? "T" : "F");
                     //*/
                 }
+                else if (frame[y][x][0] == 255 && frame[y][x][1] == 0 && frame[y][x][2] == 0)
+                {
+                    red++;
+                }
+                else if (frame[y][x][0] == 128 && frame[y][x][1] == 128 && frame[y][x][2] == 128)
+                {
+                    silver++;
+                }
             }
         }
         if (debug) Serial.printf("  TL: %d, TR: %d, BR: %d, BL: %d\r\n", tl, tr, br, bl);
+        if (debug) Serial.printf("Red: %d, Silver: %d\r\n", red, silver);	
         cuart_set_green((tl >= 10), (tr >= 10), (bl >= 10), (br >= 10));
+        if (red >= 60) cuart_set_red_line();
+        if (silver >= 60) cuart_set_silver_line();
     }
     else
     {

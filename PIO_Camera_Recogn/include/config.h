@@ -17,10 +17,10 @@
 // RECOGN_SPACE_THRESHOLD: If the line is further than that, but the type
 #define RECOGN_SPACE_THRESHOLD 16
 // RECOGN_MAX_OFFSET = maximum difference between to measurements to be considered the same
-#define RECOGN_MAX_OFFSET 2
+#define RECOGN_MAX_OFFSET 3
 
 // OFFSET_SENSOR_ARRAY is the offset from above to the sensor array
-#define OFFSET_SENSOR_ARRAY 3
+#define OFFSET_SENSOR_ARRAY 4
 
 // PER_BLOCK is Calculated from the Values above.
 #define PER_BLOCK (IMAGE_HEIGHT / END_RESOLUTION)

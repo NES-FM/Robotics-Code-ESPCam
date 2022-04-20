@@ -15,6 +15,12 @@ bool cuart_green_changed = false;
 unsigned char cuart_green = 0b0000;
 unsigned char old_cuart_green = 0b10000;
 
+bool cuart_silver_line = false;
+
+bool cuart_red_line = false;
+
+bool cuart_green_line = false;
+
 const int cuart_ltype_straight = 0x00;
 const int cuart_ltype_90l = 0x01;
 const int cuart_ltype_90r = 0x02;
@@ -97,6 +103,21 @@ void cuart_set_green(bool TL, bool TR, bool DL, bool DR)
 	// }
 }
 
+void cuart_set_silver_line()
+{
+	cuart_silver_line = true;
+}
+
+void cuart_set_green_line()
+{
+	cuart_green_line = true;
+}
+
+void cuart_set_red_line()
+{
+	cuart_red_line = true;
+}
+
 void cuart_code(void* parameter)
 {
     Serial.print("Cuart running on core ");
@@ -131,6 +152,27 @@ void cuart_code(void* parameter)
 			Serial1.write(cuart_sensor_array[2]);
 			Serial1.write(0x00);
 			Serial1.write(0xFF);	
+		}
+		if (cuart_red_line)
+		{
+			cuart_red_line = false;
+			Serial1.write('R');
+			Serial1.write(0x00);
+			Serial1.write(0xFF);
+		}
+		if (cuart_green_line)
+		{
+			cuart_green_line = false;
+			Serial1.write('E');
+			Serial1.write(0x00);
+			Serial1.write(0xFF);
+		}
+		if (cuart_silver_line)
+		{
+			cuart_silver_line = false;
+			Serial1.write('K');
+			Serial1.write(0x00);
+			Serial1.write(0xFF);
 		}
     }
 }

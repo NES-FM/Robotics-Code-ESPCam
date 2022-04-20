@@ -170,6 +170,8 @@ void serial_interface_tick()
             Serial.println("p: prints whole content of eeprom");
             Serial.println("f: prints final frame to serial");
             Serial.println("m: prints brimap to serial");
+            Serial.println("D: prints downsized frame to serial");
+            Serial.println("F: prints flattened frame to serial");
             // Serial.println("w: prints whole original frame to serial");
             Serial.println("h: Shows this help");
             Serial.println("*~~~~~~~~~~*");
@@ -214,6 +216,18 @@ void serial_interface_tick()
         else if (s == 'm')
         {
             print_frame(brimap);
+        }
+        else if (s == 'D')
+        {
+            debug_no_closest_color = true;
+            debug_no_brimap = true;
+            debug_serial_print_modified_frame = true;
+        }
+        else if (s == 'F')
+        {
+            debug_no_closest_color = true;
+            debug_no_brimap = false;
+            debug_serial_print_modified_frame = true;
         }
     }
 }

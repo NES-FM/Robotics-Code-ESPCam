@@ -17,6 +17,8 @@ bool debug_no_brimap = false;
 bool debug_sd_save_orig = false;
 bool debug_sd_save_edit = false;
 
+bool debug_serial_print_modified_frame = false;
+
 bool debug_linerecogn_return = false;
 
 bool calibrateBrimap = false;
@@ -143,6 +145,12 @@ void loop()
     {
         calibrate_brimap();
         while(digitalRead(PIN_CAMCALIB) == LOW) {}
+    }
+
+    if (debug_serial_print_modified_frame)
+    {
+        print_frame(rgb_frame);
+        debug_serial_print_modified_frame = false;
     }
 
 

@@ -35,7 +35,7 @@ const String distinctColors[6] = {"black"
                                   "green"};
 
 void init_camera();
-String closestColor(int r, int g, int b);
+String closestColor(int r, int g, int b, int y);
 void calibrate_brimap();
 void downsize(uint8_t *buf, size_t len);
 
@@ -84,19 +84,51 @@ void init_camera()
     s->set_hmirror(s, 1);    
 }
 
-String closestColor(int r, int g, int b)
+String closestColor(int r, int g, int b, int y)
 {
-    if (r > 200 && g > 200 && b > 200)
+    int white_threshold;
+    int silver_threshold;
+
+    if (y < 8)
+    {
+        white_threshold = 190;
+        silver_threshold = 110;
+    }
+    else if (y < 16)
+    {
+        white_threshold = 200;
+        silver_threshold = -1;
+    }
+    else
+    {
+        white_threshold = 195;
+        silver_threshold = 160;
+    }
+
+    if (r > white_threshold && g > white_threshold && b > white_threshold)
     {
         if (((r + b) / 2) < (g - 10))
             return "green";
+        else if (((g + b) / 2) < (r - 50))
+            return "red";
         else
             return "white";
+    }
+    else if ((silver_threshold != -1) && (r > silver_threshold && g > silver_threshold && b > silver_threshold))
+    {
+        if (((r + b) / 2) < (g - 20))
+            return "green";
+        else if (((g + b) / 2) < (r - 50))
+            return "red";
+        else
+            return "silver";
     }
     else
     {
         if (((r + b) / 2) < (g - 20))
             return "green";
+        else if (((g + b) / 2) < (r - 50))
+            return "red";
         else
             return "black";
     }
@@ -197,7 +229,7 @@ void downsize(uint8_t *buf, size_t len)
             else
             {
                 // If the closest color routine is enabled (default)
-                String colorReturn = closestColor(rn, gn, bn);
+                String colorReturn = closestColor(rn, gn, bn, block_y);
                 uint8_t color[3];
                 if (colorReturn == "black")
                 {
@@ -217,6 +249,18 @@ void downsize(uint8_t *buf, size_t len)
                     color[1] = 255;
                     color[2] = 0;
                 }
+                else if (colorReturn == "red")
+                {
+                    color[0] = 255;
+                    color[1] = 0;
+                    color[2] = 0;
+                }
+                else if (colorReturn == "silver")
+                {
+                    color[0] = 128;
+                    color[1] = 128;
+                    color[2] = 128;
+                }
                 else
                 {
                     color[0] = 0;
@@ -234,5 +278,12 @@ void downsize(uint8_t *buf, size_t len)
     }
 }
 //*/
+
+#define is_pixel_green(x, y)  (frame[y][x][0] == 0 && frame[y][x][1] == 255 && frame[y][x][2] == 0)
+#define is_pixel_red(x, y)  (frame[y][x][0] == 255 && frame[y][x][1] == 0 && frame[y][x][2] == 0)
+
+#define is_pixel_black(x, y)  (frame[y][x][0] == 0 && frame[y][x][1] == 0 && frame[y][x][2] == 0)
+#define is_pixel_silver(x, y)  (frame[y][x][0] == 128 && frame[y][x][1] == 128 && frame[y][x][2] == 128)
+#define is_pixel_black_or_silver(x, y)  (is_pixel_black(x, y) || is_pixel_silver(x, y))
 
 #endif
