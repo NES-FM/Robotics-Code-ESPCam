@@ -431,7 +431,7 @@ bool line_recogn(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3])
                     {
                         is_left = green_is_point_left_of_line(x, y, green_top_mid_coordinate, 1, green_bottom_mid_coordinate, 23);
                     } 
-                    
+
                     if (is_left)
                     {
                         if (y > green_left_mid_coordinate)
@@ -489,6 +489,7 @@ bool line_recogn(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3])
         cuart_set_green((tl >= 10), (tr >= 10), (bl >= 10), (br >= 10));
         if (red >= 60) cuart_set_red_line();
         if (silver >= 60) cuart_set_silver_line();
+        if ((tl + tr + br + bl) >= 60) cuart_set_green_line();
     }
     else
     {
