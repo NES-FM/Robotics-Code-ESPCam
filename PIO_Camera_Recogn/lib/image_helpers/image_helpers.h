@@ -62,9 +62,9 @@ void init_camera()
     config.pin_reset = RESET_GPIO_NUM;
     config.xclk_freq_hz = 20000000;
     config.pixel_format = PIXFORMAT_JPEG;
-    config.frame_size = IMAGE_RESOLUTION;
+    config.frame_size = FRAMESIZE_UXGA;
     config.jpeg_quality = 10; // 10-63, lower number means higher quality
-    config.fb_count = 1;
+    config.fb_count = 2;
 
     // camera init
     esp_err_t err = esp_camera_init(&config);
@@ -77,11 +77,12 @@ void init_camera()
     sensor_t *s = esp_camera_sensor_get();
 
     //drop down frame size for higher initial frame rate
-    //   s->set_framesize(s, IMAGE_RESOLUTION);
+    s->set_framesize(s, IMAGE_RESOLUTION);
     s->set_contrast(s, 2);
     s->set_lenc(s, false);
     s->set_vflip(s, 1);
     s->set_hmirror(s, 1);    
+    delay(200);
 }
 
 String closestColor(int r, int g, int b, int y)

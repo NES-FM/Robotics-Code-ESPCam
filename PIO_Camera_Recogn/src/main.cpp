@@ -23,6 +23,8 @@ bool debug_linerecogn_return = false;
 
 bool calibrateBrimap = false;
 
+bool convert_successful = false;
+
 int last_debug_millis = 0;
 
 #include "config.h"
@@ -101,59 +103,62 @@ void loop()
         debug_sd_save_orig = false;
     }
 
-    fmt2rgb888(fb->buf, fb->len, PIXFORMAT_JPEG, temp_buffer);
+    convert_successful = fmt2rgb888(fb->buf, fb->len, PIXFORMAT_JPEG, temp_buffer);
 
     esp_camera_fb_return(fb);
 
-    mil_1 = millis();
-
-    downsize(temp_buffer, IMAGE_WIDTH * IMAGE_HEIGHT * 3);
-
-    mil_2 = millis();
-
-    if (debug_sd_save_edit)
+    if (convert_successful)
     {
-        String r = debug_no_closest_color ? "raw_" : "color_";
-        r += debug_no_brimap ? "nobri" : "bri";
-        saveImgToSdPPM(rgb_frame, END_RESOLUTION * END_RESOLUTION * 3, "2_Edit_" + r);
-        debug_sd_save_edit = false;
+        mil_1 = millis();
+
+        downsize(temp_buffer, IMAGE_WIDTH * IMAGE_HEIGHT * 3);
+
+        mil_2 = millis();
+
+        if (debug_sd_save_edit)
+        {
+            String r = debug_no_closest_color ? "raw_" : "color_";
+            r += debug_no_brimap ? "nobri" : "bri";
+            saveImgToSdPPM(rgb_frame, END_RESOLUTION * END_RESOLUTION * 3, "2_Edit_" + r);
+            debug_sd_save_edit = false;
+        }
+
+        mil_3 = millis();
+
+        debug_linerecogn_return = line_recogn(rgb_frame);
+
+        mil_4 = millis();
+
+        if (debug)
+        {
+            Serial.print("Timing: Total: ");
+            Serial.print(mil_4 - mil_s);
+            Serial.print(" Recognition: ");
+            Serial.print(mil_4 - mil_3);
+            Serial.print(" Downsize: ");
+            Serial.print(mil_2 - mil_1);
+            Serial.print(" Taking Image: ");
+            Serial.println(mil_1 - mil_s);
+            Serial.println();
+        }
+
+        if (!debug_linerecogn_return && debug)
+            Serial.println("!! Line Recogn. returned False !!");
+
+        if (digitalRead(PIN_CAMCALIB) == LOW) 
+        {
+            calibrate_brimap();
+            while(digitalRead(PIN_CAMCALIB) == LOW) {}
+        }
+
+        if (debug_serial_print_modified_frame)
+        {
+            print_frame(rgb_frame);
+            debug_serial_print_modified_frame = false;
+        }
+
+
+        debug_no_closest_color = false;
+        debug_no_brimap = false;
     }
-
-    mil_3 = millis();
-
-    debug_linerecogn_return = line_recogn(rgb_frame);
-
-    mil_4 = millis();
-
-    if (debug)
-    {
-        Serial.print("Timing: Total: ");
-        Serial.print(mil_4 - mil_s);
-        Serial.print(" Recognition: ");
-        Serial.print(mil_4 - mil_3);
-        Serial.print(" Downsize: ");
-        Serial.print(mil_2 - mil_1);
-        Serial.print(" Taking Image: ");
-        Serial.println(mil_1 - mil_s);
-        Serial.println();
-    }
-
-    if (!debug_linerecogn_return && debug)
-        Serial.println("!! Line Recogn. returned False !!");
-
-    if (digitalRead(PIN_CAMCALIB) == LOW) 
-    {
-        calibrate_brimap();
-        while(digitalRead(PIN_CAMCALIB) == LOW) {}
-    }
-
-    if (debug_serial_print_modified_frame)
-    {
-        print_frame(rgb_frame);
-        debug_serial_print_modified_frame = false;
-    }
-
-
-    debug_no_closest_color = false;
-    debug_no_brimap = false;
 }
