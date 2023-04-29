@@ -488,7 +488,7 @@ bool line_recogn(uint8_t frame[END_RESOLUTION][END_RESOLUTION][3])
         if (debug) Serial.printf("Red: %d, Silver: %d\r\n", red, silver);	
         cuart_set_green((tl >= 10), (tr >= 10), (bl >= 10), (br >= 10));
         if (red >= 60) cuart_set_red_line();
-        if (silver >= 60) cuart_set_silver_line();
+        if (silver >= 40) cuart_set_silver_line();
         if ((tl + tr + br + bl) >= 60) cuart_set_green_line();
     }
     else

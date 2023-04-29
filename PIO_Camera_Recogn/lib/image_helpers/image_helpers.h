@@ -85,7 +85,7 @@ void init_camera()
     delay(200);
 }
 
-String closestColor(int r, int g, int b, int y)
+String closestColor(int r, int g, int b, int x, int y)
 {
     int white_threshold;
     int silver_threshold;
@@ -103,7 +103,12 @@ String closestColor(int r, int g, int b, int y)
     else
     {
         white_threshold = 195;
-        silver_threshold = 160;
+        silver_threshold = -1;//160;
+    }
+
+    if (x <= 7 || x >= 17)
+    {
+        silver_threshold = -1;
     }
 
     if (r > white_threshold && g > white_threshold && b > white_threshold)
@@ -174,9 +179,9 @@ void downsize(uint8_t *buf, size_t len)
     {
         for (uint8_t block_in_image_x = OFFSET_RIGHT; block_in_image_x < (IMAGE_HEIGHT + OFFSET_RIGHT); block_in_image_x += PER_BLOCK)
         {
-            int block_r = 0;
-            int block_g = 0;
-            int block_b = 0;
+            int block_r = 9999;
+            int block_g = 9999;
+            int block_b = 9999;
 
             // Loobing through each pixel in the block: The Offset from the top left corner
             for (uint8_t offset_in_block_y = 0; offset_in_block_y < PER_BLOCK; offset_in_block_y++)
@@ -185,16 +190,20 @@ void downsize(uint8_t *buf, size_t len)
                 {
                     // Calculating the Index into the buffer
                     size_t index = 3 * ((block_in_image_x + offset_in_block_x) + ((block_in_image_y + offset_in_block_y) * IMAGE_WIDTH));
-                    block_b += buf[index + 0];
-                    block_g += buf[index + 1];
-                    block_r += buf[index + 2];
+                    // block_b += buf[index + 0];
+                    // block_g += buf[index + 1];
+                    // block_r += buf[index + 2];
+
+                    block_b = min(block_b, (int)buf[index + 0]);
+                    block_g = min(block_g, (int)buf[index + 1]);
+                    block_r = min(block_r, (int)buf[index + 2]);
                 }
             }
 
             // Calculating the Average: There are PER_BLOCK ^2 Pixels in each block, so divide it by that and take only the int
-            block_r = int(block_r / (PER_BLOCK * PER_BLOCK));
-            block_g = int(block_g / (PER_BLOCK * PER_BLOCK));
-            block_b = int(block_b / (PER_BLOCK * PER_BLOCK));
+            // block_r = int(block_r / (PER_BLOCK * PER_BLOCK));
+            // block_g = int(block_g / (PER_BLOCK * PER_BLOCK));
+            // block_b = int(block_b / (PER_BLOCK * PER_BLOCK));
 
             // Calculating the Block coordinate (for example the second block from the top left would have the coordinates 1 , 0)
             size_t block_x = int((block_in_image_x - OFFSET_RIGHT) / PER_BLOCK);
@@ -230,7 +239,7 @@ void downsize(uint8_t *buf, size_t len)
             else
             {
                 // If the closest color routine is enabled (default)
-                String colorReturn = closestColor(rn, gn, bn, block_y);
+                String colorReturn = closestColor(rn, gn, bn, block_x, block_y);
                 uint8_t color[3];
                 if (colorReturn == "black")
                 {
